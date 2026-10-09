@@ -6,7 +6,9 @@ import { PaymentMethod, Currency } from '../types/financial';
 import { ArrowUpDown, PlusCircle, Trash2, Calendar, CreditCard as CardIcon, Banknote, Landmark, DollarSign } from 'lucide-react';
 
 export const MovementsView: React.FC = () => {
-  const { dailyExpenses, addDailyExpense, deleteDailyExpense, creditCards, convert, selectedRateType } = useFinancialContext();
+  const { dailyExpenses, addDailyExpense, deleteDailyExpense, creditCards, convert, selectedRateType, activeProfile } = useFinancialContext();
+
+  const isCardSimulatorEnabled = activeProfile?.preferences?.enableCardSimulator ?? true;
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState<number | ''>('');
@@ -121,7 +123,7 @@ export const MovementsView: React.FC = () => {
             >
               <option value="CASH">Efectivo</option>
               <option value="DEBIT">Débito</option>
-              <option value="CREDIT_CARD">Crédito (1 Pago)</option>
+              {isCardSimulatorEnabled && <option value="CREDIT_CARD">Crédito (1 Pago)</option>}
             </select>
           </div>
 

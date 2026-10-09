@@ -196,7 +196,7 @@ export const SummaryDashboard: React.FC = () => {
         )}
 
         {/* Sub-balances breakdown cards */}
-        <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className={`lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 ${isCardSimulatorEnabled ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
           {/* Income Card */}
           <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 shadow-lg flex flex-col justify-between">
             <div className="flex items-center justify-between">
@@ -260,26 +260,28 @@ export const SummaryDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Installments Card */}
-          <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 shadow-lg flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400">Cuotas de Tarjetas</span>
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
-                <CardIcon className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="mt-4 space-y-1">
-              <div className="text-xl font-bold font-mono text-amber-400 tabular-nums">
-                ARS: -${monthlyBalances.ars.totalInstallments.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-              </div>
-              {isBimonedaEnabled && (
-                <div className="text-sm font-bold font-mono text-amber-300/80 tabular-nums">
-                  USD: -US$ {monthlyBalances.usd.totalInstallments.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+          {/* Installments Card (Only if credit card module enabled) */}
+          {isCardSimulatorEnabled && (
+            <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 shadow-lg flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400">Cuotas de Tarjetas</span>
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+                  <CardIcon className="w-4 h-4" />
                 </div>
-              )}
-              <span className="text-[11px] text-slate-500 font-mono mt-1 block">Vencimientos del Mes</span>
+              </div>
+              <div className="mt-4 space-y-1">
+                <div className="text-xl font-bold font-mono text-amber-400 tabular-nums">
+                  ARS: -${monthlyBalances.ars.totalInstallments.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                </div>
+                {isBimonedaEnabled && (
+                  <div className="text-sm font-bold font-mono text-amber-300/80 tabular-nums">
+                    USD: -US$ {monthlyBalances.usd.totalInstallments.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                  </div>
+                )}
+                <span className="text-[11px] text-slate-500 font-mono mt-1 block">Vencimientos del Mes</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

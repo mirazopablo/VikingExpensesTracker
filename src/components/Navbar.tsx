@@ -22,12 +22,25 @@ export const Navbar: React.FC = () => {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+  const isCardSimulatorEnabled = activeProfile?.preferences?.enableCardSimulator ?? true;
+
+  // Fallback to summary view if user is on cards or installments view and feature is disabled
+  React.useEffect(() => {
+    if (!isCardSimulatorEnabled && (activeView === 'cards' || activeView === 'installments')) {
+      setActiveView('summary');
+    }
+  }, [isCardSimulatorEnabled, activeView, setActiveView]);
+
   const navItems: { id: ActiveView; label: string; icon: React.ReactNode }[] = [
     { id: 'summary', label: 'Dashboard Principal', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'movements', label: 'Gastos Diarios', icon: <ArrowUpDown className="w-4 h-4" /> },
     { id: 'fixed', label: 'Flujos Fijos', icon: <CalendarClock className="w-4 h-4" /> },
-    { id: 'cards', label: 'Tarjetas de Crédito', icon: <CreditCard className="w-4 h-4" /> },
-    { id: 'installments', label: 'Compras en Cuotas', icon: <ShoppingBag className="w-4 h-4" /> }
+    ...(isCardSimulatorEnabled
+      ? [
+          { id: 'cards' as ActiveView, label: 'Tarjetas de Crédito', icon: <CreditCard className="w-4 h-4" /> },
+          { id: 'installments' as ActiveView, label: 'Compras en Cuotas', icon: <ShoppingBag className="w-4 h-4" /> }
+        ]
+      : [])
   ];
 
   return (

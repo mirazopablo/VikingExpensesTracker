@@ -213,16 +213,16 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
                   </button>
                 </div>
 
-                {/* Enable Credit Card Simulator Toggle */}
+                {/* Enable Credit Card Simulator & Module Toggle */}
                 <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-950/60 border border-slate-800">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
                       <Calculator className="w-4 h-4" />
                     </div>
                     <div>
-                      <span className="text-sm font-semibold text-white block">Simulador de Tarjetas de Crédito</span>
+                      <span className="text-sm font-semibold text-white block">Módulo de Tarjetas y Cuotas (Global)</span>
                       <span className="text-xs text-slate-400 block">
-                        Visualiza el widget de simulación de impacto de cuotas futuras en el Dashboard
+                        Oculta por completo las pestañas de Tarjetas de Crédito, Compras en Cuotas y Simulador en toda la app
                       </span>
                     </div>
                   </div>
