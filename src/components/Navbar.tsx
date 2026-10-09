@@ -55,14 +55,11 @@ export const Navbar: React.FC = () => {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/logo.png" alt="Viking Expenses Logo" className="w-8 h-8 object-contain" />
                 </div>
-                <div>
+                <div className="hidden sm:block">
                   <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2 font-mono">
                     VIK<span className="text-emerald-400">ING</span>
-                    <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-300 border border-slate-700 font-sans">
-                      v2.0
-                    </span>
                   </h1>
-                  <p className="text-[10px] text-slate-400 font-mono uppercase tracking-widest hidden sm:block">
+                  <p className="text-[10px] text-slate-400 font-mono uppercase tracking-widest">
                     Motor de Gestión Financiera
                   </p>
                 </div>
@@ -96,7 +93,7 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* DolarApi Live Ticker (Rendered conditionally based on active profile preference) */}
-            {activeProfile?.preferences?.enableDolarApi ? (
+            {activeProfile?.preferences?.enableDolarApi && (
               <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 bg-slate-900/90 border border-slate-800/90 rounded-xl px-3.5 py-2 shadow-inner">
                 <div className="flex items-center gap-3 text-xs font-mono">
                   <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
@@ -143,16 +140,11 @@ export const Navbar: React.FC = () => {
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="flex items-center gap-2 bg-slate-900/60 border border-slate-800/80 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-400">
-                <span className="w-2 h-2 rounded-full bg-slate-500"></span>
-                <span>Modo Monomeda Local (DolarApi desactivado para {activeProfile?.name})</span>
-              </div>
             )}
           </div>
 
-          {/* Navigation Tabs */}
-          <nav className="flex space-x-1 overflow-x-auto py-2.5 no-scrollbar border-t border-slate-800/60">
+          {/* Navigation Tabs (Only visible on desktop/PC, mobile uses BottomNavigation) */}
+          <nav className="hidden md:flex space-x-1 overflow-x-auto py-2.5 no-scrollbar border-t border-slate-800/60">
             {navItems.map(item => {
               const isActive = activeView === item.id;
               return (

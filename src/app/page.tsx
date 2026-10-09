@@ -33,7 +33,7 @@ const DashboardContent: React.FC = () => {
         {activeView === 'installments' && <InstallmentsView />}
       </main>
       <footer className="py-6 border-t border-slate-900 text-center text-xs text-slate-500 font-mono mb-16 md:mb-0">
-        Motor de Gestión Viking Expenses • PWA Ready • Next.js App Router
+        Gestion de Gastos by Pablo Mirazo v0.1.2
       </footer>
       <BottomNavigation />
     </div>
