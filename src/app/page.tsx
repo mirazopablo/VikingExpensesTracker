@@ -14,11 +14,20 @@ const DashboardContent: React.FC = () => {
   const { activeView } = useFinancialContext();
 
   useEffect(() => {
-    if (process.env.NODE_ENV === "production" && typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((reg) => console.log("PWA ServiceWorker registered with scope:", reg.scope))
-        .catch((err) => console.log("PWA ServiceWorker registration failed:", err));
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      if (process.env.NODE_ENV === "production") {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((reg) => console.log("PWA ServiceWorker registered with scope:", reg.scope))
+          .catch((err) => console.log("PWA ServiceWorker registration failed:", err));
+      } else {
+        // Automatically unregister any leftover Service Workers in dev mode to prevent stale cache & HMR loops
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
     }
   }, []);
 
