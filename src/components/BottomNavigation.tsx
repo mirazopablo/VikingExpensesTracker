@@ -12,22 +12,23 @@ export const BottomNavigation: React.FC = () => {
 
   const isCardSimulatorEnabled = activeProfile?.preferences?.enableCardSimulator ?? true;
 
-  const leftNavItems: { id: ActiveView; label: string; icon: React.ReactNode }[] = [
-    { id: 'summary', label: 'Resumen', icon: <LayoutDashboard className="w-5 h-5" /> },
-    ...(isCardSimulatorEnabled
-      ? [{ id: 'movements' as ActiveView, label: 'Diarios', icon: <ArrowUpDown className="w-5 h-5" /> }]
-      : [])
-  ];
+  const leftNavItems: { id: ActiveView; label: string; icon: React.ReactNode }[] = isCardSimulatorEnabled
+    ? [
+        { id: 'summary', label: 'Resumen', icon: <LayoutDashboard className="w-5 h-5" /> },
+        { id: 'fixed', label: 'Fijos', icon: <CalendarClock className="w-5 h-5" /> }
+      ]
+    : [
+        { id: 'summary', label: 'Resumen', icon: <LayoutDashboard className="w-5 h-5" /> }
+      ];
 
-  const rightNavItems: { id: ActiveView; label: string; icon: React.ReactNode }[] = [
-    { id: 'fixed', label: 'Fijos', icon: <CalendarClock className="w-5 h-5" /> },
-    ...(isCardSimulatorEnabled
-      ? [
-          { id: 'cards' as ActiveView, label: 'Tarjetas', icon: <CreditCard className="w-5 h-5" /> },
-          { id: 'installments' as ActiveView, label: 'Cuotas', icon: <ShoppingBag className="w-5 h-5" /> }
-        ]
-      : [])
-  ];
+  const rightNavItems: { id: ActiveView; label: string; icon: React.ReactNode }[] = isCardSimulatorEnabled
+    ? [
+        { id: 'cards' as ActiveView, label: 'Tarjetas', icon: <CreditCard className="w-5 h-5" /> },
+        { id: 'installments' as ActiveView, label: 'Cuotas', icon: <ShoppingBag className="w-5 h-5" /> }
+      ]
+    : [
+        { id: 'fixed', label: 'Fijos', icon: <CalendarClock className="w-5 h-5" /> }
+      ];
 
   return (
     <>
