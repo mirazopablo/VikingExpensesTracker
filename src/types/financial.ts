@@ -19,10 +19,33 @@ export interface DollarQuote {
 }
 
 /**
+ * Configuration preferences for a specific user profile or account.
+ */
+export interface AccountPreferences {
+  enableBimoneda: boolean;       // Enable/Disable USD dual-currency support in UI
+  enableDolarApi: boolean;       // Enable/Disable background polling to DolarApi.com
+  enableCardSimulator: boolean;  // Enable/Disable installment simulator widget
+  defaultCurrency: Currency;     // Default currency for transactions ('ARS' or 'USD')
+}
+
+/**
+ * User Profile entity supporting multi-account isolation.
+ */
+export interface UserProfile {
+  id: string;                      // UUIDv4 (matches Go backend primary key)
+  name: string;                    // e.g. "Personal", "Pareja / Novia"
+  isDefault: boolean;
+  preferences: AccountPreferences;
+  createdAt: string;               // ISO 8601 string
+  updatedAt: string;               // ISO 8601 string
+}
+
+/**
  * Represents a recurrent or extraordinary income.
  */
 export interface Income {
   id: string;                      // UUIDv4
+  profileId?: string;              // Optional foreign key to UserProfile
   description: string;
   amount: number;
   currency?: Currency;             // Defaults to 'ARS'
@@ -38,6 +61,7 @@ export interface Income {
  */
 export interface FixedExpense {
   id: string;                      // UUIDv4
+  profileId?: string;              // Optional foreign key to UserProfile
   description: string;
   amount: number;
   currency?: Currency;             // Defaults to 'ARS'
@@ -53,6 +77,7 @@ export interface FixedExpense {
  */
 export interface DailyExpense {
   id: string;                      // UUIDv4
+  profileId?: string;              // Optional foreign key to UserProfile
   description: string;
   amount: number;
   currency?: Currency;             // Defaults to 'ARS'
@@ -69,6 +94,7 @@ export interface DailyExpense {
  */
 export interface CreditCard {
   id: string;                      // UUIDv4
+  profileId?: string;              // Optional foreign key to UserProfile
   name: string;                    // e.g., "Visa Platinum - Bank X"
   lastFourDigits?: string;
   currency?: Currency;             // Defaults to 'ARS'
@@ -85,6 +111,7 @@ export interface CreditCard {
  */
 export interface InstallmentPurchase {
   id: string;                      // UUIDv4
+  profileId?: string;              // Optional foreign key to UserProfile
   creditCardId: string;            // Foreign key to CreditCard entity
   description: string;
   totalAmount: number;             // Total purchase price

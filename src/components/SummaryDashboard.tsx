@@ -12,11 +12,24 @@ const MONTH_NAMES = [
 ];
 
 export const SummaryDashboard: React.FC = () => {
-  const { incomes, fixedExpenses, installmentPurchases, dailyExpenses, safetyMargin, setSafetyMargin, convert, selectedRateType } = useFinancialContext();
+  const {
+    incomes,
+    fixedExpenses,
+    installmentPurchases,
+    dailyExpenses,
+    safetyMargin,
+    setSafetyMargin,
+    convert,
+    selectedRateType,
+    activeProfile
+  } = useFinancialContext();
 
   const now = new Date();
   const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth() + 1);
+
+  const isBimonedaEnabled = activeProfile?.preferences?.enableBimoneda ?? true;
+  const isCardSimulatorEnabled = activeProfile?.preferences?.enableCardSimulator ?? true;
 
   const handlePrevMonth = () => {
     if (selectedMonth === 1) {
@@ -107,7 +120,7 @@ export const SummaryDashboard: React.FC = () => {
       {/* Hero Balance Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* ARS Available Cash Hero Card */}
-        <div className="lg:col-span-6 bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 p-7 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+        <div className={`${isBimonedaEnabled ? 'lg:col-span-6' : 'lg:col-span-12'} bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 p-7 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[220px]`}>
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
             <Wallet className="w-48 h-48 text-emerald-400 -mr-12 -mt-12" />
           </div>
@@ -115,7 +128,7 @@ export const SummaryDashboard: React.FC = () => {
           <div>
             <span className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
-              Saldo Disponible Mensual (ARS)
+              Saldo Disponible Mensual (ARS) • {activeProfile?.name}
             </span>
             <div
               className={`mt-3 text-4xl sm:text-5xl font-bold font-mono tracking-tight tabular-nums transition-colors ${
@@ -128,9 +141,11 @@ export const SummaryDashboard: React.FC = () => {
             >
               ${monthlyBalances.ars.available.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <span className="text-xs font-mono text-emerald-400/80 block mt-1">
-              ≈ US$ {convert(monthlyBalances.ars.available, 'ARS', 'USD').toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Tasa {selectedRateType.toUpperCase()})
-            </span>
+            {isBimonedaEnabled && (
+              <span className="text-xs font-mono text-emerald-400/80 block mt-1">
+                ≈ US$ {convert(monthlyBalances.ars.available, 'ARS', 'USD').toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Tasa {selectedRateType.toUpperCase()})
+              </span>
+            )}
           </div>
 
           <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
@@ -147,39 +162,41 @@ export const SummaryDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* USD Available Cash Hero Card */}
-        <div className="lg:col-span-6 bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 p-7 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[220px]">
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <DollarSign className="w-48 h-48 text-teal-400 -mr-12 -mt-12" />
-          </div>
-
-          <div>
-            <span className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-teal-400 inline-block animate-pulse"></span>
-              Saldo Disponible Mensual (USD)
-            </span>
-            <div
-              className={`mt-3 text-4xl sm:text-5xl font-bold font-mono tracking-tight tabular-nums transition-colors ${
-                monthlyBalances.usd.available < 0 ? 'text-rose-500' : 'text-teal-300'
-              }`}
-            >
-              US$ {monthlyBalances.usd.available.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        {/* USD Available Cash Hero Card (Only if Bimoneda enabled for active profile) */}
+        {isBimonedaEnabled && (
+          <div className="lg:col-span-6 bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 p-7 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+              <DollarSign className="w-48 h-48 text-teal-400 -mr-12 -mt-12" />
             </div>
-            <span className="text-xs font-mono text-teal-400/80 block mt-1">
-              ≈ ARS ${convert(monthlyBalances.usd.available, 'USD', 'ARS').toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Tasa {selectedRateType.toUpperCase()})
-            </span>
-          </div>
 
-          <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Mes: {selectedYearMonthStr}</span>
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase bg-teal-500/10 text-teal-300 border border-teal-500/20">
-              Total Unificado: ${unifiedAvailableARS.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ARS (≈ US${unifiedAvailableUSD.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })})
-            </span>
-          </div>
-        </div>
+            <div>
+              <span className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-teal-400 inline-block animate-pulse"></span>
+                Saldo Disponible Mensual (USD)
+              </span>
+              <div
+                className={`mt-3 text-4xl sm:text-5xl font-bold font-mono tracking-tight tabular-nums transition-colors ${
+                  monthlyBalances.usd.available < 0 ? 'text-rose-500' : 'text-teal-300'
+                }`}
+              >
+                US$ {monthlyBalances.usd.available.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <span className="text-xs font-mono text-teal-400/80 block mt-1">
+                ≈ ARS ${convert(monthlyBalances.usd.available, 'USD', 'ARS').toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Tasa {selectedRateType.toUpperCase()})
+              </span>
+            </div>
 
-        {/* Sub-balances breakdown cards (ARS & USD) */}
-        <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
+              <span>Mes: {selectedYearMonthStr}</span>
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase bg-teal-500/10 text-teal-300 border border-teal-500/20">
+                Total Unificado: ${unifiedAvailableARS.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ARS
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Sub-balances breakdown cards */}
+        <div className={`lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 ${isCardSimulatorEnabled ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
           {/* Income Card */}
           <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 shadow-lg flex flex-col justify-between">
             <div className="flex items-center justify-between">
@@ -192,9 +209,11 @@ export const SummaryDashboard: React.FC = () => {
               <div className="text-xl font-bold font-mono text-emerald-400 tabular-nums">
                 ARS: +${monthlyBalances.ars.totalIncome.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
               </div>
-              <div className="text-sm font-bold font-mono text-emerald-300/80 tabular-nums">
-                USD: +US$ {monthlyBalances.usd.totalIncome.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-              </div>
+              {isBimonedaEnabled && (
+                <div className="text-sm font-bold font-mono text-emerald-300/80 tabular-nums">
+                  USD: +US$ {monthlyBalances.usd.totalIncome.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                </div>
+              )}
               <span className="text-[11px] text-slate-500 font-mono mt-1 block">Flujos de Entrada</span>
             </div>
           </div>
@@ -211,9 +230,11 @@ export const SummaryDashboard: React.FC = () => {
               <div className="text-xl font-bold font-mono text-rose-400 tabular-nums">
                 ARS: -${monthlyBalances.ars.totalFixed.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
               </div>
-              <div className="text-sm font-bold font-mono text-rose-300/80 tabular-nums">
-                USD: -US$ {monthlyBalances.usd.totalFixed.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-              </div>
+              {isBimonedaEnabled && (
+                <div className="text-sm font-bold font-mono text-rose-300/80 tabular-nums">
+                  USD: -US$ {monthlyBalances.usd.totalFixed.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                </div>
+              )}
               <span className="text-[11px] text-slate-500 font-mono mt-1 block">Servicios Recurrentes</span>
             </div>
           </div>
@@ -230,36 +251,42 @@ export const SummaryDashboard: React.FC = () => {
               <div className="text-xl font-bold font-mono text-purple-400 tabular-nums">
                 ARS: -${monthlyBalances.ars.totalDaily.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
               </div>
-              <div className="text-sm font-bold font-mono text-purple-300/80 tabular-nums">
-                USD: -US$ {monthlyBalances.usd.totalDaily.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-              </div>
+              {isBimonedaEnabled && (
+                <div className="text-sm font-bold font-mono text-purple-300/80 tabular-nums">
+                  USD: -US$ {monthlyBalances.usd.totalDaily.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                </div>
+              )}
               <span className="text-[11px] text-slate-500 font-mono mt-1 block">Salidas Variables</span>
             </div>
           </div>
 
-          {/* Installments Card */}
-          <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 shadow-lg flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400">Cuotas de Tarjetas</span>
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
-                <CardIcon className="w-4 h-4" />
+          {/* Installments Card (Only if credit card module enabled) */}
+          {isCardSimulatorEnabled && (
+            <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/80 shadow-lg flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400">Cuotas de Tarjetas</span>
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+                  <CardIcon className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-4 space-y-1">
+                <div className="text-xl font-bold font-mono text-amber-400 tabular-nums">
+                  ARS: -${monthlyBalances.ars.totalInstallments.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                </div>
+                {isBimonedaEnabled && (
+                  <div className="text-sm font-bold font-mono text-amber-300/80 tabular-nums">
+                    USD: -US$ {monthlyBalances.usd.totalInstallments.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                  </div>
+                )}
+                <span className="text-[11px] text-slate-500 font-mono mt-1 block">Vencimientos del Mes</span>
               </div>
             </div>
-            <div className="mt-4 space-y-1">
-              <div className="text-xl font-bold font-mono text-amber-400 tabular-nums">
-                ARS: -${monthlyBalances.ars.totalInstallments.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-              </div>
-              <div className="text-sm font-bold font-mono text-amber-300/80 tabular-nums">
-                USD: -US$ {monthlyBalances.usd.totalInstallments.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-              </div>
-              <span className="text-[11px] text-slate-500 font-mono mt-1 block">Vencimientos del Mes</span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Credit Card Simulator Component Section */}
-      <CreditCardSimulator />
+      {/* Credit Card Simulator Component Section (Only if enabled in active profile) */}
+      {isCardSimulatorEnabled && <CreditCardSimulator />}
     </div>
   );
 };
