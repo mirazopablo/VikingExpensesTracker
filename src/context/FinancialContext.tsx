@@ -10,6 +10,7 @@ import {
   InstallmentPurchase,
   ActiveView,
   PaymentMethod,
+  TransactionType,
   Currency,
   ExchangeRateType,
   UserProfile,
