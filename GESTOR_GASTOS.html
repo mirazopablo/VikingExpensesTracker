@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Libro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12201c; --paper:#f4efe4; --paper-dim:#e9e2d2;
+    --line:#12201c1f; --verde:#2f5d4f; --rojo:#8a3b2b; --muted:#6b6a5f;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Mono',monospace;}
+  .wrap{max-width:760px;margin:0 auto;padding:40px 20px 100px;}
+  header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:4px;}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.9rem;margin:0;}
+  .estado{font-size:0.7rem;text-transform:uppercase;letter-spacing:.08em;padding:4px 8px;border-radius:3px;}
+  .estado.mock{background:#e0c9a6;color:#5a3d1a;}
+  .estado.live{background:var(--verde);color:var(--paper);}
+
+  nav{display:flex;gap:2px;margin:20px 0 28px;border-bottom:1px solid var(--line);}
+  nav button{
+    background:none;border:none;font-family:inherit;font-size:0.82rem;
+    padding:10px 14px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;
+  }
+  nav button.activo{color:var(--ink);border-bottom-color:var(--ink);}
+
+  section{display:none;}
+  section.activo{display:block;}
+
+  .balance-row{display:flex;justify-content:space-between;align-items:flex-end;padding:8px 0 24px;border-bottom:1px solid var(--line);margin-bottom:20px;}
+  .balance-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;}
+  .balance-num{font-family:'Fraunces',serif;font-size:2.4rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;}
+  .balance-num.negativo{color:var(--rojo);}
+  .sub-balances{display:flex;gap:20px;font-size:0.8rem;flex-wrap:wrap;}
+  .sub-balances span{font-variant-numeric:tabular-nums;}
+  .verde{color:var(--verde);} .rojo{color:var(--rojo);}
+
+  .mes-selector{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:0.85rem;}
+  .mes-selector button{background:var(--paper-dim);border:1px solid var(--line);border-radius:3px;padding:4px 10px;cursor:pointer;font-family:inherit;}
+
+  form{display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;margin-bottom:28px;}
+  form.grid-3{grid-template-columns:1fr 100px 100px auto;}
+  form.grid-simple{grid-template-columns:1fr 140px auto;}
+  input,select{
+    font-family:inherit;font-size:0.85rem;background:var(--paper-dim);
+    border:1px solid var(--line);border-radius:3px;padding:9px 11px;color:var(--ink);outline:none;
+  }
+  input:focus,select:focus{border-color:var(--ink);}
+  .tipo-toggle{display:flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
+  .tipo-toggle button{flex:1;border:none;background:var(--paper-dim);font-family:inherit;font-size:0.8rem;padding:9px 12px;cursor:pointer;color:var(--muted);}
+  .tipo-toggle button.activo[data-t="in"]{background:var(--verde);color:var(--paper);}
+  .tipo-toggle button.activo[data-t="out"]{background:var(--rojo);color:var(--paper);}
+  button.add{background:var(--ink);color:var(--paper);border:none;border-radius:3px;padding:9px 18px;font-family:inherit;font-size:0.85rem;cursor:pointer;}
+  button.add:hover{opacity:.85;}
+
+  .lista-head{display:flex;justify-content:space-between;font-size:0.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--line);}
+  ul{list-style:none;margin:0;padding:0;}
+  li{display:grid;grid-template-columns:1fr auto auto 22px;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:0.85rem;}
+  li .muted{color:var(--muted);font-size:0.75rem;}
+  li .monto{font-variant-numeric:tabular-nums;font-weight:500;text-align:right;}
+  li .del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;}
+  li .del:hover{color:var(--rojo);}
+  .vacio{padding:32px 0;text-align:center;color:var(--muted);font-size:0.82rem;}
+
+  .sim-box{background:var(--paper-dim);border:1px solid var(--line);border-radius:4px;padding:18px;margin-top:20px;}
+  .sim-box h3{margin:0 0 10px;font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;}
+  .sim-mes{display:flex;justify-content:space-between;padding:6px 0;font-size:0.82rem;border-bottom:1px dashed var(--line);}
+  .sim-mes:last-child{border-bottom:none;}
+  .badge{font-size:0.68rem;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:10px;}
+  .badge.ok{background:var(--verde);color:var(--paper);}
+  .badge.no{background:var(--rojo);color:var(--paper);}
+
+  @media (max-width:640px){
+    form,form.grid-3,form.grid-simple{grid-template-columns:1fr 1fr;}
+    form>*{grid-column:span 1;}
+    .tipo-toggle,button.add{grid-column:1/-1;}
+    .balance-num{font-size:1.9rem;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Libro</h1>
+    <span class="estado" id="estadoConexion"></span>
+  </header>
+
+  <nav id="nav">
+    <button data-view="resumen" class="activo">Resumen</button>
+    <button data-view="movimientos">Movimientos</button>
+    <button data-view="fijos">Ingresos / Gastos fijos</button>
+    <button data-view="cuotas">Compras en cuotas</button>
+  </nav>
+
+  <!-- RESUMEN -->
+  <section id="view-resumen" class="activo">
+    <div class="mes-selector">
+      <button id="mesPrev">←</button>
+      <span id="mesLabel"></span>
+      <button id="mesNext">→</button>
+    </div>
+    <div class="balance-row">
+      <div>
+        <div class="balance-label">Disponible del mes</div>
+        <div class="balance-num" id="balDisp">$0</div>
+      </div>
+      <div class="sub-balances">
+        <span class="verde" id="balIngresos">Ingresos $0</span>
+        <span class="rojo" id="balFijos">Fijos $0</span>
+        <span class="rojo" id="balCuotas">Cuotas $0</span>
+      </div>
+    </div>
+
+    <div class="sim-box">
+      <h3>¿Puedo comprarlo?</h3>
+      <form id="formSim" class="grid-3">
+        <input type="text" id="simDesc" placeholder="Descripción" required>
+        <input type="number" id="simMonto" placeholder="Monto total" step="0.01" min="0" required>
+        <input type="number" id="simCuotas" placeholder="Cuotas" min="1" value="1" required>
+        <button type="submit" class="add">Simular</button>
+      </form>
+      <div id="simResultado"></div>
+    </div>
+  </section>
+
+  <!-- MOVIMIENTOS -->
+  <section id="view-movimientos">
+    <form id="formMov">
+      <input type="text" id="movDesc" placeholder="Descripción" required autocomplete="off">
+      <input type="number" id="movMonto" placeholder="Monto" step="0.01" min="0" required>
+      <div class="tipo-toggle">
+        <button type="button" data-t="in" class="activo">Entrada</button>
+        <button type="button" data-t="out">Salida</button>
+      </div>
+      <button type="submit" class="add">Agregar</button>
+    </form>
+    <div class="lista-head"><span>Movimientos</span><span id="movConteo">0</span></div>
+    <ul id="listaMov"></ul>
+    <div class="vacio" id="vacioMov" style="display:none;">Sin movimientos todavía.</div>
+  </section>
+
+  <!-- INGRESOS / FIJOS -->
+  <section id="view-fijos">
+    <div class="lista-head"><span>Ingresos fijos</span><span></span></div>
+    <form id="formIngreso" class="grid-simple">
+      <input type="text" id="ingDesc" placeholder="Ej: Sueldo" required>
+      <input type="number" id="ingMonto" placeholder="Monto" step="0.01" min="0" required>
+      <button type="submit" class="add">Agregar</button>
+    </form>
+    <ul id="listaIngresos"></ul>
+    <div class="vacio" id="vacioIngresos" style="display:none;">Sin ingresos cargados.</div>
+
+    <div style="height:32px;"></div>
+
+    <div class="lista-head"><span>Gastos fijos</span><span></span></div>
+    <form id="formFijo" class="grid-simple">
+      <input type="text" id="fijoDesc" placeholder="Ej: Alquiler" required>
+      <input type="number" id="fijoMonto" placeholder="Monto" step="0.01" min="0" required>
+      <button type="submit" class="add">Agregar</button>
+    </form>
+    <ul id="listaFijos"></ul>
+    <div class="vacio" id="vacioFijos" style="display:none;">Sin gastos fijos cargados.</div>
+  </section>
+
+  <!-- COMPRAS EN CUOTAS -->
+  <section id="view-cuotas">
+    <form id="formCompra" class="grid-3">
+      <input type="text" id="compDesc" placeholder="Descripción" required>
+      <input type="number" id="compMonto" placeholder="Monto total" step="0.01" min="0" required>
+      <input type="number" id="compCuotas" placeholder="Cuotas" min="1" value="1" required>
+      <button type="submit" class="add">Agregar</button>
+    </form>
+    <div class="lista-head"><span>Compras</span><span></span></div>
+    <ul id="listaCompras"></ul>
+    <div class="vacio" id="vacioCompras" style="display:none;">Sin compras en cuotas.</div>
+  </section>
+
+</div>
+
+<script>
+/* ===================== CONFIG ===================== */
+const CONFIG = {
+  MOCK: true,                          // false = pega contra el backend real
+  API_BASE: 'http://localhost:8080',
+  MARGEN_COLCHON: 0
+};
+
+/* ===================== CAPA API ===================== */
+/* Misma interfaz para mock o backend real. Cambiar CONFIG.MOCK alterna la implementación. */
+
+function mesesEntre(anioA, mesA, anioB, mesB){
+  return (anioB*12 + mesB) - (anioA*12 + mesA);
+}
+function cuotaActivaEnMes(compra, anio, mes){
+  const [ai, mi] = compra.fecha_inicio.split('-').map(Number);
+  const transcurridos = mesesEntre(ai, mi, anio, mes);
+  return transcurridos >= 0 && transcurridos < compra.n_cuotas;
+}
+
+const MockDB = {
+  ingresos: JSON.parse(localStorage.getItem('mock_ingresos') || '[]'),
+  gastos_fijos: JSON.parse(localStorage.getItem('mock_fijos') || '[]'),
+  compras: JSON.parse(localStorage.getItem('mock_compras') || '[]'),
+  movimientos: JSON.parse(localStorage.getItem('mock_movimientos') || '[]'),
+  _save(){
+    localStorage.setItem('mock_ingresos', JSON.stringify(this.ingresos));
+    localStorage.setItem('mock_fijos', JSON.stringify(this.gastos_fijos));
+    localStorage.setItem('mock_compras', JSON.stringify(this.compras));
+    localStorage.setItem('mock_movimientos', JSON.stringify(this.movimientos));
+  }
+};
+
+const delay = (ms=120) => new Promise(r=>setTimeout(r, ms));
+
+const api = {
+  async listMovimientos(){
+    if(CONFIG.MOCK){ await delay(); return [...MockDB.movimientos]; }
+    return fetch(`${CONFIG.API_BASE}/movimientos`).then(r=>r.json());
+  },
+  async addMovimiento(m){
+    if(CONFIG.MOCK){
+      await delay();
+      const item = {id: Date.now(), fecha: new Date().toISOString(), ...m};
+      MockDB.movimientos.unshift(item); MockDB._save();
+      return item;
+    }
+    return fetch(`${CONFIG.API_BASE}/movimientos`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(m)}).then(r=>r.json());
+  },
+  async deleteMovimiento(id){
+    if(CONFIG.MOCK){
+      await delay();
+      MockDB.movimientos = MockDB.movimientos.filter(x=>x.id!==id); MockDB._save();
+      return true;
+    }
+    return fetch(`${CONFIG.API_BASE}/movimientos/${id}`, {method:'DELETE'}).then(r=>r.ok);
+  },
+
+  async listIngresos(){
+    if(CONFIG.MOCK){ await delay(); return [...MockDB.ingresos]; }
+    return fetch(`${CONFIG.API_BASE}/ingresos`).then(r=>r.json());
+  },
+  async addIngreso(i){
+    if(CONFIG.MOCK){
+      await delay();
+      const item = {id: Date.now(), dia_cobro: 1, ...i};
+      MockDB.ingresos.push(item); MockDB._save();
+      return item;
+    }
+    return fetch(`${CONFIG.API_BASE}/ingresos`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(i)}).then(r=>r.json());
+  },
+  async deleteIngreso(id){
+    if(CONFIG.MOCK){
+      await delay();
+      MockDB.ingresos = MockDB.ingresos.filter(x=>x.id!==id); MockDB._save();
+      return true;
+    }
+    return fetch(`${CONFIG.API_BASE}/ingresos/${id}`, {method:'DELETE'}).then(r=>r.ok);
+  },
+
+  async listGastosFijos(){
+    if(CONFIG.MOCK){ await delay(); return [...MockDB.gastos_fijos]; }
+    return fetch(`${CONFIG.API_BASE}/gastos-fijos`).then(r=>r.json());
+  },
+  async addGastoFijo(g){
+    if(CONFIG.MOCK){
+      await delay();
+      const item = {id: Date.now(), activo: true, ...g};
+      MockDB.gastos_fijos.push(item); MockDB._save();
+      return item;
+    }
+    return fetch(`${CONFIG.API_BASE}/gastos-fijos`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(g)}).then(r=>r.json());
+  },
+  async deleteGastoFijo(id){
+    if(CONFIG.MOCK){
+      await delay();
+      MockDB.gastos_fijos = MockDB.gastos_fijos.filter(x=>x.id!==id); MockDB._save();
+      return true;
+    }
+    return fetch(`${CONFIG.API_BASE}/gastos-fijos/${id}`, {method:'DELETE'}).then(r=>r.ok);
+  },
+
+  async listCompras(){
+    if(CONFIG.MOCK){ await delay(); return [...MockDB.compras]; }
+    return fetch(`${CONFIG.API_BASE}/compras`).then(r=>r.json());
+  },
+  async addCompra(c){
+    if(CONFIG.MOCK){
+      await delay();
+      const item = {id: Date.now(), monto_cuota: c.monto_total / c.n_cuotas, ...c};
+      MockDB.compras.push(item); MockDB._save();
+      return item;
+    }
+    return fetch(`${CONFIG.API_BASE}/compras`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(c)}).then(r=>r.json());
+  },
+  async deleteCompra(id){
+    if(CONFIG.MOCK){
+      await delay();
+      MockDB.compras = MockDB.compras.filter(x=>x.id!==id); MockDB._save();
+      return true;
+    }
+    return fetch(`${CONFIG.API_BASE}/compras/${id}`, {method:'DELETE'}).then(r=>r.ok);
+  },
+
+  async getBalance(anio, mes){
+    if(CONFIG.MOCK){
+      await delay();
+      const ym = `${anio}-${String(mes).padStart(2,'0')}`;
+      const ingresos = MockDB.ingresos.reduce((s,i)=>s+i.monto,0);
+      const fijos = MockDB.gastos_fijos.filter(g=>g.activo).reduce((s,g)=>s+g.monto,0);
+      const cuotas = MockDB.compras.filter(c=>cuotaActivaEnMes(c, anio, mes)).reduce((s,c)=>s+c.monto_cuota,0);
+      return { mes: ym, ingresos, fijos, cuotas, disponible: ingresos - fijos - cuotas };
+    }
+    return fetch(`${CONFIG.API_BASE}/balance/${anio}-${String(mes).padStart(2,'0')}`).then(r=>r.json());
+  },
+
+  async simularCompra(payload){
+    if(CONFIG.MOCK){
+      await delay();
+      const [ai, mi] = payload.fecha_inicio.split('-').map(Number);
+      const monto_cuota = payload.monto_total / payload.n_cuotas;
+      const ingresos = MockDB.ingresos.reduce((s,i)=>s+i.monto,0);
+      const fijos = MockDB.gastos_fijos.filter(g=>g.activo).reduce((s,g)=>s+g.monto,0);
+      const meses = [];
+      for(let k=0; k<payload.n_cuotas; k++){
+        let m = mi + k, a = ai;
+        while(m > 12){ m -= 12; a += 1; }
+        const cuotasExistentes = MockDB.compras.filter(c=>cuotaActivaEnMes(c, a, m)).reduce((s,c)=>s+c.monto_cuota,0);
+        const disp_antes = ingresos - fijos - cuotasExistentes;
+        const disp_despues = disp_antes - monto_cuota;
+        meses.push({
+          mes: `${a}-${String(m).padStart(2,'0')}`,
+          disponible_antes: disp_antes,
+          disponible_despues: disp_despues,
+          viable: disp_despues > CONFIG.MARGEN_COLCHON
+        });
+      }
+      return { monto_cuota, meses, viable_total: meses.every(m=>m.viable) };
+    }
+    return fetch(`${CONFIG.API_BASE}/simular-compra`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}).then(r=>r.json());
+  }
+};
+
+/* ===================== UI HELPERS ===================== */
+const $ = id => document.getElementById(id);
+const fmt = n => (n<0?'−':'') + '$' + Math.abs(n).toLocaleString('es-AR',{minimumFractionDigits:0, maximumFractionDigits:2});
+
+$('estadoConexion').textContent = CONFIG.MOCK ? 'Modo mock' : 'Conectado';
+$('estadoConexion').className = 'estado ' + (CONFIG.MOCK ? 'mock' : 'live');
+
+document.querySelectorAll('#nav button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('activo'));
+    document.querySelectorAll('section').forEach(x=>x.classList.remove('activo'));
+    b.classList.add('activo');
+    $('view-'+b.dataset.view).classList.add('activo');
+  });
+});
+
+/* ===================== RESUMEN ===================== */
+let hoy = new Date();
+let anioActual = hoy.getFullYear();
+let mesActual = hoy.getMonth()+1;
+const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+async function renderResumen(){
+  $('mesLabel').textContent = `${nombresMes[mesActual-1]} ${anioActual}`;
+  const b = await api.getBalance(anioActual, mesActual);
+  $('balDisp').textContent = fmt(b.disponible);
+  $('balDisp').classList.toggle('negativo', b.disponible < 0);
+  $('balIngresos').textContent = 'Ingresos ' + fmt(b.ingresos);
+  $('balFijos').textContent = 'Fijos ' + fmt(-b.fijos);
+  $('balCuotas').textContent = 'Cuotas ' + fmt(-b.cuotas);
+}
+$('mesPrev').addEventListener('click', ()=>{
+  mesActual--; if(mesActual<1){mesActual=12; anioActual--;}
+  renderResumen();
+});
+$('mesNext').addEventListener('click', ()=>{
+  mesActual++; if(mesActual>12){mesActual=1; anioActual++;}
+  renderResumen();
+});
+
+$('formSim').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const desc = $('simDesc').value.trim();
+  const monto_total = parseFloat($('simMonto').value);
+  const n_cuotas = parseInt($('simCuotas').value);
+  const fecha_inicio = `${anioActual}-${String(mesActual).padStart(2,'0')}`;
+  const res = await api.simularCompra({descripcion: desc, monto_total, n_cuotas, fecha_inicio});
+
+  const cont = $('simResultado');
+  cont.innerHTML = `<div style="margin:12px 0 6px;font-size:0.85rem;">
+      Cuota mensual: <strong>${fmt(res.monto_cuota)}</strong>
+      &nbsp;·&nbsp;
+      <span class="badge ${res.viable_total?'ok':'no'}">${res.viable_total?'Viable':'No viable'}</span>
+    </div>` +
+    res.meses.map(m=>`
+      <div class="sim-mes">
+        <span>${m.mes}</span>
+        <span>${fmt(m.disponible_antes)} → ${fmt(m.disponible_despues)}</span>
+        <span class="badge ${m.viable?'ok':'no'}">${m.viable?'ok':'no'}</span>
+      </div>
+    `).join('');
+});
+
+/* ===================== MOVIMIENTOS ===================== */
+let tipoMov = 'in';
+document.querySelectorAll('#formMov .tipo-toggle button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    tipoMov = b.dataset.t;
+    document.querySelectorAll('#formMov .tipo-toggle button').forEach(x=>x.classList.remove('activo'));
+    b.classList.add('activo');
+  });
+});
+$('formMov').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const descripcion = $('movDesc').value.trim();
+  const monto = parseFloat($('movMonto').value);
+  if(!descripcion || !monto) return;
+  await api.addMovimiento({descripcion, monto, tipo: tipoMov});
+  e.target.reset();
+  tipoMov='in';
+  document.querySelectorAll('#formMov .tipo-toggle button').forEach(x=>x.classList.remove('activo'));
+  document.querySelector('#formMov [data-t="in"]').classList.add('activo');
+  renderMovimientos();
+});
+async function renderMovimientos(){
+  const items = await api.listMovimientos();
+  const lista = $('listaMov');
+  lista.innerHTML = '';
+  $('vacioMov').style.display = items.length ? 'none' : 'block';
+  $('movConteo').textContent = items.length;
+  items.forEach(m=>{
+    const li = document.createElement('li');
+    const f = new Date(m.fecha);
+    li.innerHTML = `
+      <span>${m.descripcion} <span class="muted">${f.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'})}</span></span>
+      <span></span>
+      <span class="monto ${m.tipo==='in'?'verde':'rojo'}">${m.tipo==='in'?'+':'−'}${fmt(m.monto)}</span>
+      <button class="del">×</button>
+    `;
+    li.querySelector('.del').addEventListener('click', async ()=>{ await api.deleteMovimiento(m.id); renderMovimientos(); });
+    lista.appendChild(li);
+  });
+}
+
+/* ===================== INGRESOS / GASTOS FIJOS ===================== */
+$('formIngreso').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const descripcion = $('ingDesc').value.trim();
+  const monto = parseFloat($('ingMonto').value);
+  if(!descripcion || !monto) return;
+  await api.addIngreso({descripcion, monto});
+  e.target.reset();
+  renderFijos(); renderResumen();
+});
+$('formFijo').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const descripcion = $('fijoDesc').value.trim();
+  const monto = parseFloat($('fijoMonto').value);
+  if(!descripcion || !monto) return;
+  await api.addGastoFijo({descripcion, monto});
+  e.target.reset();
+  renderFijos(); renderResumen();
+});
+async function renderFijos(){
+  const ingresos = await api.listIngresos();
+  const li1 = $('listaIngresos'); li1.innerHTML = '';
+  $('vacioIngresos').style.display = ingresos.length ? 'none' : 'block';
+  ingresos.forEach(i=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${i.descripcion}</span><span></span><span class="monto verde">+${fmt(i.monto)}</span><button class="del">×</button>`;
+    li.querySelector('.del').addEventListener('click', async ()=>{ await api.deleteIngreso(i.id); renderFijos(); renderResumen(); });
+    li1.appendChild(li);
+  });
+
+  const fijos = await api.listGastosFijos();
+  const li2 = $('listaFijos'); li2.innerHTML = '';
+  $('vacioFijos').style.display = fijos.length ? 'none' : 'block';
+  fijos.forEach(g=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${g.descripcion}</span><span></span><span class="monto rojo">−${fmt(g.monto)}</span><button class="del">×</button>`;
+    li.querySelector('.del').addEventListener('click', async ()=>{ await api.deleteGastoFijo(g.id); renderFijos(); renderResumen(); });
+    li2.appendChild(li);
+  });
+}
+
+/* ===================== COMPRAS EN CUOTAS ===================== */
+$('formCompra').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const descripcion = $('compDesc').value.trim();
+  const monto_total = parseFloat($('compMonto').value);
+  const n_cuotas = parseInt($('compCuotas').value);
+  if(!descripcion || !monto_total || !n_cuotas) return;
+  const fecha_inicio = `${anioActual}-${String(mesActual).padStart(2,'0')}`;
+  await api.addCompra({descripcion, monto_total, n_cuotas, fecha_inicio});
+  e.target.reset();
+  renderCompras(); renderResumen();
+});
+async function renderCompras(){
+  const compras = await api.listCompras();
+  const lista = $('listaCompras'); lista.innerHTML = '';
+  $('vacioCompras').style.display = compras.length ? 'none' : 'block';
+  compras.forEach(c=>{
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span>${c.descripcion} <span class="muted">${c.n_cuotas} cuotas desde ${c.fecha_inicio}</span></span>
+      <span class="muted">${fmt(c.monto_cuota)}/mes</span>
+      <span class="monto rojo">${fmt(c.monto_total)}</span>
+      <button class="del">×</button>
+    `;
+    li.querySelector('.del').addEventListener('click', async ()=>{ await api.deleteCompra(c.id); renderCompras(); renderResumen(); });
+    lista.appendChild(li);
+  });
+}
+
+/* ===================== INIT ===================== */
+renderResumen();
+renderMovimientos();
+renderFijos();
+renderCompras();
+</script>
+</body>
+</html>
