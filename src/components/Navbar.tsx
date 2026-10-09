@@ -51,8 +51,9 @@ export const Navbar: React.FC = () => {
             {/* Brand Logo & Profile Selector */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-slate-950 shadow-lg shadow-emerald-500/20">
-                  <Shield className="w-6 h-6 stroke-[2.5]" />
+                <div className="p-1 rounded-xl bg-slate-900 border border-slate-800/80 overflow-hidden shadow-lg shadow-emerald-500/10 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/logo.png" alt="Viking Expenses Logo" className="w-8 h-8 object-contain" />
                 </div>
                 <div>
                   <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2 font-mono">
