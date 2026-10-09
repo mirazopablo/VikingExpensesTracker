@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/mirazopablo/VikingExpensesTracker/compare/v0.1.2...v0.1.3) (2026-10-09)
+
+
+### Features
+
+* **ui:** optimizar navegacion mobile, logo en cabecera y mover version al footer ([94a5732](https://github.com/mirazopablo/VikingExpensesTracker/commit/94a5732f11db22cdb3eda8dd6ab995d398b6de99))
+
 ### [0.1.2](https://github.com/mirazopablo/VikingExpensesTracker/compare/v0.1.1...v0.1.2) (2026-10-09)
 
 
