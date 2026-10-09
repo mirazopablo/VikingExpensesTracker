@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import {
   Income,
@@ -11,7 +11,9 @@ import {
   ActiveView,
   PaymentMethod,
   Currency,
-  ExchangeRateType
+  ExchangeRateType,
+  UserProfile,
+  AccountPreferences
 } from '../types/financial';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useExchangeRates, ExchangeRatesData } from '../hooks/useExchangeRates';
@@ -23,6 +25,13 @@ interface FinancialContextType {
   isHydrated: boolean;
   safetyMargin: number;
   setSafetyMargin: (val: number) => void;
+
+  // Profiles & Preferences
+  profiles: UserProfile[];
+  activeProfile: UserProfile;
+  setActiveProfileId: (id: string) => void;
+  addProfile: (name: string, preferences?: Partial<AccountPreferences>) => void;
+  updateProfilePreferences: (profileId: string, newPrefs: Partial<AccountPreferences>) => void;
 
   exchangeRates: ExchangeRatesData;
   selectedRateType: ExchangeRateType;
@@ -54,9 +63,39 @@ interface FinancialContextType {
 
 const FinancialContext = createContext<FinancialContextType | undefined>(undefined);
 
+const DEFAULT_PROFILES: UserProfile[] = [
+  {
+    id: 'prof-personal',
+    name: 'Cuenta Personal',
+    isDefault: true,
+    preferences: {
+      enableBimoneda: true,
+      enableDolarApi: true,
+      enableCardSimulator: true,
+      defaultCurrency: 'ARS'
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'prof-pareja',
+    name: 'Cuenta Pareja',
+    isDefault: false,
+    preferences: {
+      enableBimoneda: false,
+      enableDolarApi: false,
+      enableCardSimulator: false,
+      defaultCurrency: 'ARS'
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+
 const INITIAL_INCOMES: Income[] = [
   {
     id: 'inc-1',
+    profileId: 'prof-personal',
     description: 'Senior Software Engineer Salary',
     amount: 3500,
     currency: 'ARS',
@@ -71,6 +110,7 @@ const INITIAL_INCOMES: Income[] = [
 const INITIAL_FIXED_EXPENSES: FixedExpense[] = [
   {
     id: 'fijo-1',
+    profileId: 'prof-personal',
     description: 'Apartment Rent & Building Expenses',
     amount: 850,
     currency: 'ARS',
@@ -82,6 +122,7 @@ const INITIAL_FIXED_EXPENSES: FixedExpense[] = [
   },
   {
     id: 'fijo-2',
+    profileId: 'prof-personal',
     description: 'High-Speed Fiber Internet',
     amount: 60,
     currency: 'ARS',
@@ -96,6 +137,7 @@ const INITIAL_FIXED_EXPENSES: FixedExpense[] = [
 const INITIAL_CREDIT_CARDS: CreditCard[] = [
   {
     id: 'card-1',
+    profileId: 'prof-personal',
     name: 'Visa Platinum - Valhalla Bank',
     lastFourDigits: '4819',
     currency: 'ARS',
@@ -111,6 +153,7 @@ const INITIAL_CREDIT_CARDS: CreditCard[] = [
 const INITIAL_INSTALLMENTS: InstallmentPurchase[] = [
   {
     id: 'inst-1',
+    profileId: 'prof-personal',
     creditCardId: 'card-1',
     description: 'MacBook Pro M3 Max (Setup)',
     totalAmount: 2400,
@@ -131,21 +174,91 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [activeView, setActiveView] = useLocalStorage<ActiveView>('viking_active_view', 'summary');
   const [safetyMargin, setSafetyMargin] = useLocalStorage<number>('viking_safety_margin', 200);
 
-  const { rates, selectedRateType, setSelectedRateType, refreshRates, convert } = useExchangeRates();
+  // Profiles State
+  const [profiles, setProfiles, hydratedProfiles] = useLocalStorage<UserProfile[]>('viking_user_profiles', DEFAULT_PROFILES);
+  const [activeProfileId, setActiveProfileId, hydratedActiveProfile] = useLocalStorage<string>('viking_active_profile_id', 'prof-personal');
 
-  const [incomes, setIncomes, hydratedIncomes] = useLocalStorage<Income[]>('viking_incomes', INITIAL_INCOMES);
-  const [fixedExpenses, setFixedExpenses, hydratedFixed] = useLocalStorage<FixedExpense[]>('viking_fixed_expenses', INITIAL_FIXED_EXPENSES);
-  const [dailyExpenses, setDailyExpenses, hydratedDaily] = useLocalStorage<DailyExpense[]>('viking_daily_expenses', INITIAL_DAILY_EXPENSES);
-  const [creditCards, setCreditCards, hydratedCards] = useLocalStorage<CreditCard[]>('viking_credit_cards', INITIAL_CREDIT_CARDS);
-  const [installmentPurchases, setInstallmentPurchases, hydratedInstallments] = useLocalStorage<InstallmentPurchase[]>('viking_installments', INITIAL_INSTALLMENTS);
+  const activeProfile = useMemo(() => {
+    return profiles.find(p => p.id === activeProfileId) || profiles[0] || DEFAULT_PROFILES[0];
+  }, [profiles, activeProfileId]);
 
-  const isHydrated = hydratedIncomes && hydratedFixed && hydratedDaily && hydratedCards && hydratedInstallments;
+  // Hook Exchange Rates respects profile DolarApi feature toggle
+  const { rates, selectedRateType, setSelectedRateType, refreshRates, convert } = useExchangeRates({
+    enabled: activeProfile?.preferences?.enableDolarApi ?? true
+  });
+
+  const [rawIncomes, setIncomes, hydratedIncomes] = useLocalStorage<Income[]>('viking_incomes', INITIAL_INCOMES);
+  const [rawFixedExpenses, setFixedExpenses, hydratedFixed] = useLocalStorage<FixedExpense[]>('viking_fixed_expenses', INITIAL_FIXED_EXPENSES);
+  const [rawDailyExpenses, setDailyExpenses, hydratedDaily] = useLocalStorage<DailyExpense[]>('viking_daily_expenses', INITIAL_DAILY_EXPENSES);
+  const [rawCreditCards, setCreditCards, hydratedCards] = useLocalStorage<CreditCard[]>('viking_credit_cards', INITIAL_CREDIT_CARDS);
+  const [rawInstallments, setInstallmentPurchases, hydratedInstallments] = useLocalStorage<InstallmentPurchase[]>('viking_installments', INITIAL_INSTALLMENTS);
+
+  const isHydrated = hydratedProfiles && hydratedActiveProfile && hydratedIncomes && hydratedFixed && hydratedDaily && hydratedCards && hydratedInstallments;
+
+  // Filter entities by active profile ID (or items with no profileId for backward compatibility)
+  const incomes = useMemo(() => {
+    return rawIncomes.filter(item => !item.profileId || item.profileId === activeProfile.id);
+  }, [rawIncomes, activeProfile.id]);
+
+  const fixedExpenses = useMemo(() => {
+    return rawFixedExpenses.filter(item => !item.profileId || item.profileId === activeProfile.id);
+  }, [rawFixedExpenses, activeProfile.id]);
+
+  const dailyExpenses = useMemo(() => {
+    return rawDailyExpenses.filter(item => !item.profileId || item.profileId === activeProfile.id);
+  }, [rawDailyExpenses, activeProfile.id]);
+
+  const creditCards = useMemo(() => {
+    return rawCreditCards.filter(item => !item.profileId || item.profileId === activeProfile.id);
+  }, [rawCreditCards, activeProfile.id]);
+
+  const installmentPurchases = useMemo(() => {
+    return rawInstallments.filter(item => !item.profileId || item.profileId === activeProfile.id);
+  }, [rawInstallments, activeProfile.id]);
+
+  // Profile Mutations
+  const addProfile = (name: string, preferences?: Partial<AccountPreferences>) => {
+    const now = new Date().toISOString();
+    const newProf: UserProfile = {
+      id: uuidv4(),
+      name,
+      isDefault: false,
+      preferences: {
+        enableBimoneda: true,
+        enableDolarApi: true,
+        enableCardSimulator: true,
+        defaultCurrency: 'ARS',
+        ...preferences
+      },
+      createdAt: now,
+      updatedAt: now
+    };
+    setProfiles(prev => [...prev, newProf]);
+    setActiveProfileId(newProf.id);
+  };
+
+  const updateProfilePreferences = (profileId: string, newPrefs: Partial<AccountPreferences>) => {
+    const now = new Date().toISOString();
+    setProfiles(prev =>
+      prev.map(p => {
+        if (p.id === profileId) {
+          return {
+            ...p,
+            preferences: { ...p.preferences, ...newPrefs },
+            updatedAt: now
+          };
+        }
+        return p;
+      })
+    );
+  };
 
   // Incomes CRUD
   const addIncome = (description: string, amount: number, collectionDay = 1, isRecurring = true, category = 'General', currency: Currency = 'ARS') => {
     const now = new Date().toISOString();
     const newItem: Income = {
       id: uuidv4(),
+      profileId: activeProfile.id,
       description,
       amount,
       currency,
@@ -167,6 +280,7 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
     const now = new Date().toISOString();
     const newItem: FixedExpense = {
       id: uuidv4(),
+      profileId: activeProfile.id,
       description,
       amount,
       currency,
@@ -194,6 +308,7 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
     const now = new Date().toISOString();
     const newItem: DailyExpense = {
       id: uuidv4(),
+      profileId: activeProfile.id,
       description,
       amount,
       currency,
@@ -216,6 +331,7 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
     const now = new Date().toISOString();
     const newItem: CreditCard = {
       id: uuidv4(),
+      profileId: activeProfile.id,
       name,
       closingDay,
       dueDay,
@@ -248,6 +364,7 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const newItem: InstallmentPurchase = {
       id: uuidv4(),
+      profileId: activeProfile.id,
       creditCardId,
       description,
       totalAmount,
@@ -275,6 +392,11 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
         isHydrated,
         safetyMargin,
         setSafetyMargin,
+        profiles,
+        activeProfile,
+        setActiveProfileId,
+        addProfile,
+        updateProfilePreferences,
         exchangeRates: rates,
         selectedRateType,
         setSelectedRateType,
@@ -310,3 +432,4 @@ export const useFinancialContext = (): FinancialContextType => {
   }
   return context;
 };
+

@@ -36,11 +36,16 @@ export interface UseExchangeRatesReturn {
   convert: (amount: number, from: Currency, to: Currency, customRate?: ExchangeRateType) => number;
 }
 
+export interface UseExchangeRatesOptions {
+  enabled?: boolean;
+}
+
 /**
  * Custom hook to fetch real-time USD/ARS exchange rates from DolarApi.com.
  * Features automatic background fetch, offline caching via localStorage, and instant currency conversion.
  */
-export function useExchangeRates(): UseExchangeRatesReturn {
+export function useExchangeRates(options: UseExchangeRatesOptions = { enabled: true }): UseExchangeRatesReturn {
+  const isEnabled = options.enabled ?? true;
   const [cachedData, setCachedData] = useLocalStorage<ExchangeRateCache>('viking_exchange_rates', DEFAULT_RATES_CACHE);
   const [selectedRateType, setSelectedRateType] = useLocalStorage<ExchangeRateType>('viking_selected_rate_type', 'tarjeta');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -51,6 +56,7 @@ export function useExchangeRates(): UseExchangeRatesReturn {
   }, [cachedData.rates]);
 
   const fetchFromApi = useCallback(async () => {
+    if (!isEnabled) return;
     try {
       setIsLoading(true);
       const res = await fetch('https://dolarapi.com/v1/dolares', { cache: 'no-store' });
@@ -76,10 +82,10 @@ export function useExchangeRates(): UseExchangeRatesReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [setCachedData]);
+  }, [isEnabled, setCachedData]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !isEnabled) return;
     // Defer initial fetch to avoid synchronous state updates inside effect body (cascading renders)
     const timeout = setTimeout(() => {
       void fetchFromApi();
@@ -90,7 +96,7 @@ export function useExchangeRates(): UseExchangeRatesReturn {
       clearTimeout(timeout);
       clearInterval(interval);
     };
-  }, [fetchFromApi]);
+  }, [isEnabled, fetchFromApi]);
 
   const convert = useCallback((amount: number, from: Currency = 'ARS', to: Currency = 'ARS', customRate?: ExchangeRateType): number => {
     if (from === to || !amount || isNaN(amount)) return amount;
