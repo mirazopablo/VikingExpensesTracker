@@ -52,6 +52,7 @@ export interface Income {
   collectionDay: number;           // Day of the month (1-31) when it is typically received
   isRecurring: boolean;
   category?: string;
+  confirmedMonths?: string[];       // ISO strings YYYY-MM when payment was confirmed
   createdAt: string;               // ISO 8601 string
   updatedAt: string;               // ISO 8601 string
 }
@@ -68,6 +69,7 @@ export interface FixedExpense {
   dueDay: number;                  // Day of the month (1-31) when payment is due
   isActive: boolean;               // Allows disabling without deleting history
   category?: string;
+  confirmedMonths?: string[];       // ISO strings YYYY-MM when payment was confirmed
   createdAt: string;
   updatedAt: string;
 }
@@ -85,6 +87,7 @@ export interface DailyExpense {
   paymentMethod: PaymentMethod;
   creditCardId?: string;           // Optional foreign key to CreditCard if paid with credit
   category?: string;
+  type?: TransactionType;          // 'INCOME' | 'EXPENSE' (defaults to 'EXPENSE')
   createdAt: string;
   updatedAt: string;
 }

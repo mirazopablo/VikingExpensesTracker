@@ -10,13 +10,17 @@ export const FixedFlowView: React.FC = () => {
     incomes,
     addIncome,
     deleteIncome,
+    confirmIncome,
     fixedExpenses,
     addFixedExpense,
     toggleFixedExpense,
     deleteFixedExpense,
+    confirmFixedExpense,
     convert,
     selectedRateType
   } = useFinancialContext();
+
+  const currentYearMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
   // Incomes local state
   const [incDesc, setIncDesc] = useState('');
@@ -150,6 +154,7 @@ export const FixedFlowView: React.FC = () => {
             <ul className="divide-y divide-slate-800/60">
               {incomes.map(item => {
                 const itemCurr = item.currency || 'ARS';
+                const isConfirmed = item.confirmedMonths?.includes(currentYearMonth);
                 const equiv = itemCurr === 'ARS'
                   ? `≈ US$ ${convert(item.amount, 'ARS', 'USD').toFixed(2)}`
                   : `≈ $ ${convert(item.amount, 'USD', 'ARS').toFixed(0)}`;
@@ -179,6 +184,19 @@ export const FixedFlowView: React.FC = () => {
                           {equiv} ({selectedRateType})
                         </span>
                       </div>
+                      {isConfirmed ? (
+                        <span className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-semibold flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5" /> Cobrado
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => confirmIncome(item.id, currentYearMonth)}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1 cursor-pointer"
+                          title="Confirmar cobro efectivo para este mes"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" /> Cobrado
+                        </button>
+                      )}
                       <button
                         onClick={() => deleteIncome(item.id)}
                         className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
@@ -286,6 +304,7 @@ export const FixedFlowView: React.FC = () => {
             <ul className="divide-y divide-slate-800/60">
               {fixedExpenses.map(item => {
                 const itemCurr = item.currency || 'ARS';
+                const isConfirmed = item.confirmedMonths?.includes(currentYearMonth);
                 const equiv = itemCurr === 'ARS'
                   ? `≈ US$ ${convert(item.amount, 'ARS', 'USD').toFixed(2)}`
                   : `≈ $ ${convert(item.amount, 'USD', 'ARS').toFixed(0)}`;
@@ -315,6 +334,19 @@ export const FixedFlowView: React.FC = () => {
                           {equiv} ({selectedRateType})
                         </span>
                       </div>
+                      {isConfirmed ? (
+                        <span className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-semibold flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5" /> Pagado
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => confirmFixedExpense(item.id, currentYearMonth)}
+                          className="px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs font-mono uppercase tracking-wider shadow-md shadow-rose-500/20 transition-all flex items-center gap-1 cursor-pointer"
+                          title="Confirmar pago realizado para este mes"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" /> Pagado
+                        </button>
+                      )}
                       <button
                         onClick={() => toggleFixedExpense(item.id)}
                         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${

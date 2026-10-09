@@ -10,6 +10,7 @@ export const MovementsView: React.FC = () => {
 
   const isCardSimulatorEnabled = activeProfile?.preferences?.enableCardSimulator ?? true;
 
+  const [type, setType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState<number | ''>('');
   const [currency, setCurrency] = useState<Currency>('ARS');
@@ -24,9 +25,10 @@ export const MovementsView: React.FC = () => {
       description.trim(),
       Number(amount),
       paymentMethod,
-      paymentMethod === 'CREDIT_CARD' ? selectedCardId : undefined,
-      'General',
-      currency
+      type === 'EXPENSE' && paymentMethod === 'CREDIT_CARD' ? selectedCardId : undefined,
+      type === 'INCOME' ? 'Ingreso Variable' : 'Gasto Diario',
+      currency,
+      type
     );
 
     setDescription('');
@@ -45,7 +47,7 @@ export const MovementsView: React.FC = () => {
       case 'DEBIT':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">
-            <Landmark className="w-3.5 h-3.5" /> Débito
+            <Landmark className="w-3.5 h-3.5" /> Débito / Transferencia
           </span>
         );
       case 'CREDIT_CARD':
@@ -63,13 +65,37 @@ export const MovementsView: React.FC = () => {
     <div className="space-y-8 animate-fadeIn">
       {/* Form Card */}
       <div className="bg-slate-900/90 rounded-2xl border border-slate-800/80 p-6 shadow-xl backdrop-blur-md">
-        <div className="flex items-center gap-3 pb-4 border-b border-slate-800 mb-6">
-          <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
-            <ArrowUpDown className="w-5 h-5" />
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-xl ${type === 'INCOME' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+              <ArrowUpDown className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Registrar Movimiento Diario</h3>
+              <p className="text-xs text-slate-400">Registra entradas (ingresos) o salidas (gastos) de dinero en ARS o USD</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-bold text-white">Registrar Gasto Diario Variable</h3>
-            <p className="text-xs text-slate-400">Registra salidas diarias esporádicas y compras inmediatas en ARS o USD</p>
+
+          {/* Toggle Type */}
+          <div className="flex items-center p-1 bg-slate-950 border border-slate-800 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setType('EXPENSE')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer ${
+                type === 'EXPENSE' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Gasto (-)
+            </button>
+            <button
+              type="button"
+              onClick={() => setType('INCOME')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer ${
+                type === 'INCOME' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Ingreso (+)
+            </button>
           </div>
         </div>
 
@@ -80,7 +106,7 @@ export const MovementsView: React.FC = () => {
               type="text"
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="Ej. Supermercado, Café, Taxi..."
+              placeholder={type === 'INCOME' ? 'Ej. Venta, Reembolso, Regalo...' : 'Ej. Supermercado, Café, Taxi...'}
               required
               className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition-all"
             />
@@ -122,12 +148,12 @@ export const MovementsView: React.FC = () => {
               className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition-all cursor-pointer"
             >
               <option value="CASH">Efectivo</option>
-              <option value="DEBIT">Débito</option>
-              {isCardSimulatorEnabled && <option value="CREDIT_CARD">Crédito (1 Pago)</option>}
+              <option value="DEBIT">Débito / Transferencia</option>
+              {type === 'EXPENSE' && isCardSimulatorEnabled && <option value="CREDIT_CARD">Crédito (1 Pago)</option>}
             </select>
           </div>
 
-          {paymentMethod === 'CREDIT_CARD' && (
+          {type === 'EXPENSE' && paymentMethod === 'CREDIT_CARD' && (
             <div className="md:col-span-2">
               <label className="block text-xs font-mono uppercase text-slate-400 mb-1.5">Tarjeta</label>
               <select
@@ -145,12 +171,16 @@ export const MovementsView: React.FC = () => {
             </div>
           )}
 
-          <div className={`${paymentMethod === 'CREDIT_CARD' ? 'md:col-span-12 flex justify-end' : 'md:col-span-2 flex items-end'}`}>
+          <div className={`${type === 'EXPENSE' && paymentMethod === 'CREDIT_CARD' ? 'md:col-span-12 flex justify-end' : 'md:col-span-2 flex items-end'}`}>
             <button
               type="submit"
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                type === 'INCOME'
+                  ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+                  : 'bg-rose-500 hover:bg-rose-400 text-white shadow-rose-500/20'
+              }`}
             >
-              <PlusCircle className="w-4 h-4" /> Registrar
+              <PlusCircle className="w-4 h-4" /> Registrar {type === 'INCOME' ? 'Ingreso' : 'Gasto'}
             </button>
           </div>
         </form>
@@ -171,6 +201,7 @@ export const MovementsView: React.FC = () => {
         ) : (
           <ul className="divide-y divide-slate-800/60">
             {dailyExpenses.map(item => {
+              const isInc = item.type === 'INCOME';
               const itemCurr = item.currency || 'ARS';
               const equiv = itemCurr === 'ARS'
                 ? `≈ US$ ${convert(item.amount, 'ARS', 'USD').toFixed(2)}`
@@ -178,11 +209,18 @@ export const MovementsView: React.FC = () => {
               return (
                 <li key={item.id} className="py-4 flex items-center justify-between gap-4 group hover:bg-slate-800/20 px-3 rounded-xl transition-all">
                   <div className="flex items-center gap-4">
-                    <div className="p-2.5 rounded-xl bg-slate-800/60 text-slate-400 group-hover:text-white transition-colors">
+                    <div className={`p-2.5 rounded-xl ${isInc ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800/60 text-slate-400'} group-hover:text-white transition-colors`}>
                       <Calendar className="w-4 h-4" />
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-white block">{item.description}</span>
+                      <span className="text-sm font-medium text-white block flex items-center gap-2">
+                        {item.description}
+                        {isInc && (
+                          <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono uppercase font-bold">
+                            Ingreso
+                          </span>
+                        )}
+                      </span>
                       <span className="text-xs text-slate-400 font-mono flex items-center gap-2 mt-1">
                         <span>{item.transactionDate}</span>
                         <span>•</span>
@@ -194,8 +232,8 @@ export const MovementsView: React.FC = () => {
 
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <span className="text-base font-bold font-mono text-rose-400 tabular-nums block">
-                        -{itemCurr === 'USD' ? 'US$' : '$'}{item.amount.toFixed(2)}
+                      <span className={`text-base font-bold font-mono tabular-nums block ${isInc ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {isInc ? '+' : '-'}{itemCurr === 'USD' ? 'US$' : '$'}{item.amount.toFixed(2)}
                       </span>
                       <span className="text-[10px] font-mono text-slate-500 block">
                         {equiv} ({selectedRateType})

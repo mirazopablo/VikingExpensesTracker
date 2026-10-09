@@ -33,8 +33,8 @@ self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
-  // Skip cross-origin requests like DolarApi to allow fresh API responses
-  if (!event.request.url.startsWith(self.location.origin)) return;
+  // Skip cross-origin requests and Next.js internal/HMR requests
+  if (!event.request.url.startsWith(self.location.origin) || event.request.url.includes('/_next/')) return;
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {

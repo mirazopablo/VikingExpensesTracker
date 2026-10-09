@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](https://github.com/mirazopablo/VikingExpensesTracker/compare/v0.1.3...v0.1.4) (2026-10-09)
+
+
+### Features
+
+* **movements:** integrar boton (+), confirmacion de flujos fijos e ingresos diarios ([d4436dd](https://github.com/mirazopablo/VikingExpensesTracker/commit/d4436dd777a03868b32f8124c3f3a86e18a0e39b))
+* **ui:** reorganizar tabbar a 5 botones en cuenta personal ([3a72a8f](https://github.com/mirazopablo/VikingExpensesTracker/commit/3a72a8fd09e0e38c09e855f6b989952aa57fda1e))
+
 ### [0.1.3](https://github.com/mirazopablo/VikingExpensesTracker/compare/v0.1.2...v0.1.3) (2026-10-09)
 
 

@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useFinancialContext } from '../context/FinancialContext';
 import { isInstallmentActiveInMonth } from '../lib/projectionEngine';
 import { CreditCardSimulator } from './CreditCardSimulator';
-import { ChevronLeft, ChevronRight, Wallet, TrendingUp, TrendingDown, CreditCard as CardIcon, ShieldAlert, DollarSign, ArrowUpDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Wallet, TrendingUp, TrendingDown, CreditCard as CardIcon, ShieldAlert, DollarSign, ArrowUpDown, Calendar, Trash2 } from 'lucide-react';
 
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -17,6 +17,7 @@ export const SummaryDashboard: React.FC = () => {
     fixedExpenses,
     installmentPurchases,
     dailyExpenses,
+    deleteDailyExpense,
     safetyMargin,
     setSafetyMargin,
     convert,
@@ -53,22 +54,38 @@ export const SummaryDashboard: React.FC = () => {
 
   const monthlyBalances = useMemo(() => {
     // Balances en ARS
-    const incomeARS = incomes.filter(i => (i.currency || 'ARS') === 'ARS').reduce((acc, inc) => acc + inc.amount, 0);
+    const baseIncomeARS = incomes.filter(i => (i.currency || 'ARS') === 'ARS').reduce((acc, inc) => acc + inc.amount, 0);
+    const dailyIncomeARS = dailyExpenses
+      .filter(de => de.transactionDate.startsWith(selectedYearMonthStr) && (de.currency || 'ARS') === 'ARS' && de.type === 'INCOME')
+      .reduce((acc, de) => acc + de.amount, 0);
+    const totalIncomeARS = baseIncomeARS + dailyIncomeARS;
+
     const fixedARS = fixedExpenses.filter(fe => fe.isActive && (fe.currency || 'ARS') === 'ARS').reduce((acc, fe) => acc + fe.amount, 0);
     const installmentsARS = installmentPurchases.filter(p => isInstallmentActiveInMonth(p, selectedYearMonthStr) && (p.currency || 'ARS') === 'ARS').reduce((acc, p) => acc + p.installmentAmount, 0);
-    const dailyARS = dailyExpenses.filter(de => de.transactionDate.startsWith(selectedYearMonthStr) && (de.currency || 'ARS') === 'ARS').reduce((acc, de) => acc + de.amount, 0);
-    const availableARS = incomeARS - fixedARS - installmentsARS - dailyARS;
+    const dailyExpenseARS = dailyExpenses
+      .filter(de => de.transactionDate.startsWith(selectedYearMonthStr) && (de.currency || 'ARS') === 'ARS' && de.type !== 'INCOME')
+      .reduce((acc, de) => acc + de.amount, 0);
+
+    const availableARS = totalIncomeARS - fixedARS - installmentsARS - dailyExpenseARS;
 
     // Balances en USD
-    const incomeUSD = incomes.filter(i => i.currency === 'USD').reduce((acc, inc) => acc + inc.amount, 0);
+    const baseIncomeUSD = incomes.filter(i => i.currency === 'USD').reduce((acc, inc) => acc + inc.amount, 0);
+    const dailyIncomeUSD = dailyExpenses
+      .filter(de => de.transactionDate.startsWith(selectedYearMonthStr) && de.currency === 'USD' && de.type === 'INCOME')
+      .reduce((acc, de) => acc + de.amount, 0);
+    const totalIncomeUSD = baseIncomeUSD + dailyIncomeUSD;
+
     const fixedUSD = fixedExpenses.filter(fe => fe.isActive && fe.currency === 'USD').reduce((acc, fe) => acc + fe.amount, 0);
     const installmentsUSD = installmentPurchases.filter(p => isInstallmentActiveInMonth(p, selectedYearMonthStr) && p.currency === 'USD').reduce((acc, p) => acc + p.installmentAmount, 0);
-    const dailyUSD = dailyExpenses.filter(de => de.transactionDate.startsWith(selectedYearMonthStr) && de.currency === 'USD').reduce((acc, de) => acc + de.amount, 0);
-    const availableUSD = incomeUSD - fixedUSD - installmentsUSD - dailyUSD;
+    const dailyExpenseUSD = dailyExpenses
+      .filter(de => de.transactionDate.startsWith(selectedYearMonthStr) && de.currency === 'USD' && de.type !== 'INCOME')
+      .reduce((acc, de) => acc + de.amount, 0);
+
+    const availableUSD = totalIncomeUSD - fixedUSD - installmentsUSD - dailyExpenseUSD;
 
     return {
-      ars: { totalIncome: incomeARS, totalFixed: fixedARS, totalInstallments: installmentsARS, totalDaily: dailyARS, available: availableARS },
-      usd: { totalIncome: incomeUSD, totalFixed: fixedUSD, totalInstallments: installmentsUSD, totalDaily: dailyUSD, available: availableUSD }
+      ars: { totalIncome: totalIncomeARS, totalFixed: fixedARS, totalInstallments: installmentsARS, totalDaily: dailyExpenseARS, available: availableARS },
+      usd: { totalIncome: totalIncomeUSD, totalFixed: fixedUSD, totalInstallments: installmentsUSD, totalDaily: dailyExpenseUSD, available: availableUSD }
     };
   }, [incomes, fixedExpenses, installmentPurchases, dailyExpenses, selectedYearMonthStr]);
 
@@ -78,8 +95,8 @@ export const SummaryDashboard: React.FC = () => {
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Month Selector & Safety Margin Controls Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl shadow-lg backdrop-blur-md">
+      <div className="flex flex-col items-center justify-center sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
+        <div className="flex items-center justify-between gap-2 bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl shadow-lg backdrop-blur-md w-full max-w-xs sm:w-auto">
           <button
             onClick={handlePrevMonth}
             className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 transition-all cursor-pointer"
@@ -87,7 +104,7 @@ export const SummaryDashboard: React.FC = () => {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <div className="px-5 text-center min-w-[170px]">
+          <div className="px-3 text-center flex-1 sm:flex-none min-w-[150px]">
             <span className="text-sm font-bold text-white tracking-tight font-mono uppercase">
               {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
             </span>
@@ -102,16 +119,18 @@ export const SummaryDashboard: React.FC = () => {
         </div>
 
         {/* Safety cushion control */}
-        <div className="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-2xl shadow-lg backdrop-blur-md">
-          <ShieldAlert className="w-4 h-4 text-emerald-400" />
-          <span className="text-xs font-mono uppercase text-slate-400">Margen de Seguridad (ARS):</span>
+        <div className="flex items-center justify-between sm:justify-start gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-2xl shadow-lg backdrop-blur-md w-full max-w-xs sm:w-auto">
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-mono uppercase text-slate-400">Margen (ARS):</span>
+          </div>
           <div className="flex items-center">
             <span className="text-xs text-slate-400 mr-1 font-mono">$</span>
             <input
               type="number"
               value={safetyMargin}
               onChange={e => setSafetyMargin(parseFloat(e.target.value) || 0)}
-              className="w-24 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white font-mono font-bold focus:outline-none focus:border-emerald-500 text-right"
+              className="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white font-mono font-bold focus:outline-none focus:border-emerald-500 text-right"
             />
           </div>
         </div>
@@ -287,6 +306,79 @@ export const SummaryDashboard: React.FC = () => {
 
       {/* Credit Card Simulator Component Section (Only if enabled in active profile) */}
       {isCardSimulatorEnabled && <CreditCardSimulator />}
+
+      {/* Daily Movements List for Selected Month */}
+      <div className="bg-slate-900/90 rounded-2xl border border-slate-800/80 p-6 shadow-xl backdrop-blur-md">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+          <span className="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center gap-2">
+            <ArrowUpDown className="w-4 h-4 text-emerald-400" />
+            Movimientos Diarios del Mes ({MONTH_NAMES[selectedMonth - 1]} {selectedYear})
+          </span>
+          <span className="text-[11px] font-mono text-slate-500">
+            {dailyExpenses.filter(de => de.transactionDate.startsWith(selectedYearMonthStr)).length} registros
+          </span>
+        </div>
+
+        {dailyExpenses.filter(de => de.transactionDate.startsWith(selectedYearMonthStr)).length === 0 ? (
+          <div className="py-8 text-center text-slate-500 text-xs font-mono border border-dashed border-slate-800/80 rounded-xl">
+            No hay movimientos diarios registrados para este mes. Toca el botón (+) flotante para agregar uno.
+          </div>
+        ) : (
+          <ul className="divide-y divide-slate-800/60">
+            {dailyExpenses
+              .filter(de => de.transactionDate.startsWith(selectedYearMonthStr))
+              .map(item => {
+                const isInc = item.type === 'INCOME';
+                const itemCurr = item.currency || 'ARS';
+                const equiv = itemCurr === 'ARS'
+                  ? `≈ US$ ${convert(item.amount, 'ARS', 'USD').toFixed(2)}`
+                  : `≈ $ ${convert(item.amount, 'USD', 'ARS').toFixed(0)}`;
+                return (
+                  <li key={item.id} className="py-3.5 flex items-center justify-between gap-4 group hover:bg-slate-800/20 px-2 rounded-xl transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${isInc ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800/60 text-slate-400'}`}>
+                        <Calendar className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-white block flex items-center gap-2">
+                          {item.description}
+                          {isInc && (
+                            <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono uppercase font-bold">
+                              Ingreso
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-mono flex items-center gap-2 mt-0.5">
+                          <span>{item.transactionDate}</span>
+                          <span>•</span>
+                          <span className="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300 font-semibold">{itemCurr}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <span className={`text-sm sm:text-base font-bold font-mono tabular-nums block ${isInc ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {isInc ? '+' : '-'}{itemCurr === 'USD' ? 'US$' : '$'}{item.amount.toFixed(2)}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-500 block">
+                          {equiv} ({selectedRateType})
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => deleteDailyExpense(item.id)}
+                        className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all cursor-pointer"
+                        title="Eliminar movimiento"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };

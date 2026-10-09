@@ -47,9 +47,19 @@ interface FinancialContextType {
   addFixedExpense: (description: string, amount: number, dueDay?: number, category?: string, currency?: Currency) => void;
   toggleFixedExpense: (id: string) => void;
   deleteFixedExpense: (id: string) => void;
+  confirmIncome: (id: string, yearMonth?: string) => void;
+  confirmFixedExpense: (id: string, yearMonth?: string, paymentMethod?: PaymentMethod) => void;
 
   dailyExpenses: DailyExpense[];
-  addDailyExpense: (description: string, amount: number, paymentMethod: PaymentMethod, creditCardId?: string, category?: string, currency?: Currency) => void;
+  addDailyExpense: (
+    description: string,
+    amount: number,
+    paymentMethod: PaymentMethod,
+    creditCardId?: string,
+    category?: string,
+    currency?: Currency,
+    type?: TransactionType
+  ) => void;
   deleteDailyExpense: (id: string) => void;
 
   creditCards: CreditCard[];
@@ -304,7 +314,15 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   // Daily Expenses CRUD
-  const addDailyExpense = (description: string, amount: number, paymentMethod: PaymentMethod, creditCardId?: string, category = 'General', currency: Currency = 'ARS') => {
+  const addDailyExpense = (
+    description: string,
+    amount: number,
+    paymentMethod: PaymentMethod,
+    creditCardId?: string,
+    category = 'General',
+    currency: Currency = 'ARS',
+    type: TransactionType = 'EXPENSE'
+  ) => {
     const now = new Date().toISOString();
     const newItem: DailyExpense = {
       id: uuidv4(),
@@ -316,10 +334,67 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
       paymentMethod,
       creditCardId,
       category,
+      type,
       createdAt: now,
       updatedAt: now
     };
     setDailyExpenses(prev => [newItem, ...prev]);
+  };
+
+  const confirmIncome = (id: string, yearMonth?: string) => {
+    const currentYM = yearMonth || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+    const target = rawIncomes.find(i => i.id === id);
+    if (!target) return;
+
+    setIncomes(prev =>
+      prev.map(i => {
+        if (i.id === id) {
+          const months = i.confirmedMonths || [];
+          if (!months.includes(currentYM)) {
+            return { ...i, confirmedMonths: [...months, currentYM], updatedAt: new Date().toISOString() };
+          }
+        }
+        return i;
+      })
+    );
+
+    addDailyExpense(
+      `[Cobro] ${target.description}`,
+      target.amount,
+      'BANK_TRANSFER',
+      undefined,
+      target.category || 'Ingresos',
+      target.currency || 'ARS',
+      'INCOME'
+    );
+  };
+
+  const confirmFixedExpense = (id: string, yearMonth?: string, paymentMethod: PaymentMethod = 'DEBIT') => {
+    const currentYM = yearMonth || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+    const target = rawFixedExpenses.find(fe => fe.id === id);
+    if (!target) return;
+
+    setFixedExpenses(prev =>
+      prev.map(fe => {
+        if (fe.id === id) {
+          const months = fe.confirmedMonths || [];
+          if (!months.includes(currentYM)) {
+            return { ...fe, confirmedMonths: [...months, currentYM], updatedAt: new Date().toISOString() };
+          }
+        }
+        return fe;
+      })
+    );
+
+    addDailyExpense(
+      `[Pago] ${target.description}`,
+      target.amount,
+      paymentMethod,
+      undefined,
+      target.category || 'Gastos Fijos',
+      target.currency || 'ARS',
+      'EXPENSE'
+    );
   };
 
   const deleteDailyExpense = (id: string) => {
@@ -409,6 +484,8 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
         addFixedExpense,
         toggleFixedExpense,
         deleteFixedExpense,
+        confirmIncome,
+        confirmFixedExpense,
         dailyExpenses,
         addDailyExpense,
         deleteDailyExpense,
