@@ -9,8 +9,8 @@ services:
       - no-new-privileges:true
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_BASE_PATH=/viking-app
-      - NEXT_PUBLIC_API_URL=http://${DOMAIN_NAME:-lenovov15.tail6f4be3.ts.net}/viking-expenses/api/v1
+      - BASE_PATH=/viking-app
+      - API_BASE_URL=http://${DOMAIN_NAME:-lenovov15.tail6f4be3.ts.net}/viking-expenses/api/v1
     networks:
       - mired2
     deploy:

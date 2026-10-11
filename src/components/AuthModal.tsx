@@ -41,6 +41,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen }) => {
   const [showDevInput, setShowDevInput] = useState(false);
 
   const googleClientId =
+    process.env.GOOGLE_CLIENT_ID ||
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
     'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
 

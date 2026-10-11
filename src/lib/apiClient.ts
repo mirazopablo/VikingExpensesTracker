@@ -6,7 +6,9 @@
 import { ApiAuthResponse, ApiResponse } from '../types/api';
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/viking-expenses/api/v1';
+  process.env.API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  'http://localhost:8080/viking-expenses/api/v1';
 
 const ACCESS_TOKEN_KEY = 'viking_access_token';
 const REFRESH_TOKEN_KEY = 'viking_refresh_token';
