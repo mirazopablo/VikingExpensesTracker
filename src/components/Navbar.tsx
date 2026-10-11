@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { useFinancialContext } from '../context/FinancialContext';
+import { useAuth } from '../context/AuthContext';
 import { ActiveView, ExchangeRateType } from '../types/financial';
 import { ProfileSettingsModal } from './ProfileSettingsModal';
-import { Shield, LayoutDashboard, ArrowUpDown, CalendarClock, CreditCard, ShoppingBag, Loader2, DollarSign, RefreshCw, User, Settings2 } from 'lucide-react';
+import { Shield, LayoutDashboard, ArrowUpDown, CalendarClock, CreditCard, ShoppingBag, Loader2, DollarSign, RefreshCw, User, Settings2, LogOut } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const {
@@ -20,6 +21,7 @@ export const Navbar: React.FC = () => {
     setActiveProfileId
   } = useFinancialContext();
 
+  const { user, isAuthenticated, logout } = useAuth();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const isCardSimulatorEnabled = activeProfile?.preferences?.enableCardSimulator ?? true;
@@ -89,6 +91,16 @@ export const Navbar: React.FC = () => {
                 >
                   <Settings2 className="w-4 h-4 text-emerald-400" />
                 </button>
+
+                {isAuthenticated && (
+                  <button
+                    onClick={() => logout()}
+                    className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-red-950/40 hover:border-red-800/60 text-slate-400 hover:text-red-300 transition-colors cursor-pointer"
+                    title={`Cerrar sesión (${user?.full_name || user?.email || 'Usuario'})`}
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
 
