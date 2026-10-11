@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { AuthProvider, useAuth } from "../context/AuthContext";
 import { FinancialProvider, useFinancialContext } from "../context/FinancialContext";
 import { Navbar } from "../components/Navbar";
 import { BottomNavigation } from "../components/BottomNavigation";
@@ -9,9 +10,11 @@ import { MovementsView } from "../components/MovementsView";
 import { FixedFlowView } from "../components/FixedFlowView";
 import { CreditCardsView } from "../components/CreditCardsView";
 import { InstallmentsView } from "../components/InstallmentsView";
+import { AuthModal } from "../components/AuthModal";
 
 const DashboardContent: React.FC = () => {
   const { activeView } = useFinancialContext();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
@@ -42,17 +45,22 @@ const DashboardContent: React.FC = () => {
         {activeView === 'installments' && <InstallmentsView />}
       </main>
       <footer className="py-6 border-t border-slate-900 text-center text-xs text-slate-500 font-mono mb-16 md:mb-0">
-        Gestion de Gastos by Pablo Mirazo v0.1.2
+        Gestion de Gastos by Pablo Mirazo v0.1.4
       </footer>
       <BottomNavigation />
+
+      {/* Modal de autenticación obligatoria (Whitelist de Google) */}
+      <AuthModal isOpen={!isAuthenticated && !isLoading} />
     </div>
   );
 };
 
 export default function Home() {
   return (
-    <FinancialProvider>
-      <DashboardContent />
-    </FinancialProvider>
+    <AuthProvider>
+      <FinancialProvider>
+        <DashboardContent />
+      </FinancialProvider>
+    </AuthProvider>
   );
 }

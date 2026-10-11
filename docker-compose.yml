@@ -1,0 +1,36 @@
+services:
+  viking-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: viking_frontend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_BASE_PATH=/viking-app
+      - NEXT_PUBLIC_API_URL=http://${DOMAIN_NAME:-lenovov15.tail6f4be3.ts.net}/viking-expenses/api/v1
+    networks:
+      - mired2
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+        reservations:
+          memory: 100M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=mired2"
+
+      # Traefik Routing Rule: Dominio Tailscale + PathPrefix /viking-app (Prioridad 10)
+      - "traefik.http.routers.viking-frontend.rule=Host(`${DOMAIN_NAME:-lenovov15.tail6f4be3.ts.net}`) && PathPrefix(`/viking-app`)"
+      - "traefik.http.routers.viking-frontend.entrypoints=web"
+      - "traefik.http.routers.viking-frontend.priority=10"
+
+      # Internal container port mapping for Next.js
+      - "traefik.http.services.viking-frontend.loadbalancer.server.port=3000"
+
+networks:
+  mired2:
+    external: true
