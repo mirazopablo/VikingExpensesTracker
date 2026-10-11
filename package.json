@@ -15,6 +15,12 @@
       "path": "cz-git"
     }
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
   "dependencies": {
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
