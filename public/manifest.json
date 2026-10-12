@@ -1,6 +1,6 @@
 {
-  "name": "Viking Expenses Tracker",
-  "short_name": "Viking",
+  "name": "Gestor de Gastos - Viking",
+  "short_name": "Gestor de Gastos",
   "description": "Motor de gestión financiera personal bimoneda y simulación de cuotas",
   "start_url": "/",
   "display": "standalone",

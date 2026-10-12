@@ -21,7 +21,11 @@ const DashboardContent: React.FC = () => {
       if (process.env.NODE_ENV === "production") {
         navigator.serviceWorker
           .register("/sw.js")
-          .then((reg) => console.log("PWA ServiceWorker registered with scope:", reg.scope))
+          .then((reg) => {
+            // Forzar verificación de nueva versión en cada inicio
+            reg.update();
+            console.log("PWA ServiceWorker registered with scope:", reg.scope);
+          })
           .catch((err) => console.log("PWA ServiceWorker registration failed:", err));
       } else {
         // Automatically unregister any leftover Service Workers in dev mode to prevent stale cache & HMR loops
