@@ -38,7 +38,8 @@ export const SummaryDashboard: React.FC = () => {
     setSafetyMargin,
     convert,
     selectedRateType,
-    activeProfile
+    activeProfile,
+    setActiveView
   } = useFinancialContext();
 
   const now = new Date();
@@ -633,6 +634,15 @@ export const SummaryDashboard: React.FC = () => {
               })}
           </ul>
         )}
+
+        <div className="pt-4 mt-2 border-t border-slate-800/60 flex justify-end">
+          <button
+            onClick={() => setActiveView('movements')}
+            className="text-xs font-mono text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer font-semibold"
+          >
+            Abrir Historial Completo & Filtros de Cashflow <ArrowUpDown className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );

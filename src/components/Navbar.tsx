@@ -212,6 +212,17 @@ export const Navbar: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
+                    setActiveView('movements');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 py-2 text-xs text-slate-300 hover:text-white"
+                >
+                  <ArrowUpDown className="w-4 h-4 text-emerald-400" />
+                  <span>Historial & Filtros de Cashflow</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     setIsSettingsOpen(true);
                     setIsMenuOpen(false);
                   }}
