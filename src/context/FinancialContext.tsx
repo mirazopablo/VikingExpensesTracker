@@ -68,13 +68,17 @@ interface FinancialContextType {
   incomes: Income[];
   addIncome: (description: string, amount: number, collectionDay?: number, isRecurring?: boolean, category?: string, currency?: Currency) => Promise<void>;
   deleteIncome: (id: string) => Promise<void>;
+  confirmIncome: (id: string, yearMonth?: string) => Promise<void>;
+  unconfirmIncome: (id: string, yearMonth?: string) => Promise<void>;
+  toggleIncomeConfirmation: (id: string, yearMonth?: string) => Promise<void>;
 
   fixedExpenses: FixedExpense[];
   addFixedExpense: (description: string, amount: number, dueDay?: number, category?: string, currency?: Currency) => Promise<void>;
   toggleFixedExpense: (id: string) => Promise<void>;
   deleteFixedExpense: (id: string) => Promise<void>;
-  confirmIncome: (id: string, yearMonth?: string) => Promise<void>;
-  confirmFixedExpense: (id: string, yearMonth?: string, paymentMethod?: PaymentMethod) => Promise<void>;
+  confirmFixedExpense: (id: string, yearMonth?: string) => Promise<void>;
+  unconfirmFixedExpense: (id: string, yearMonth?: string) => Promise<void>;
+  toggleFixedExpenseConfirmation: (id: string, yearMonth?: string) => Promise<void>;
 
   dailyExpenses: DailyExpense[];
   addDailyExpense: (
@@ -455,22 +459,52 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
       })
     );
 
-    addDailyExpense(
-      `[Cobro] ${target.description}`,
-      target.amount,
-      'BANK_TRANSFER',
-      undefined,
-      target.category || 'Ingresos',
-      target.currency || 'ARS',
-      'INCOME'
-    );
-
     if (isAuthenticated) {
       try {
         await incomesApi.confirmIncome(id, ym);
       } catch (err) {
         console.error('API confirmIncome failed:', err);
       }
+    }
+  };
+
+  const unconfirmIncome = async (id: string, yearMonth?: string) => {
+    const ym = yearMonth || currentMonth;
+    const target = rawIncomes.find((i) => i.id === id);
+    if (!target) return;
+
+    setIncomes((prev) =>
+      prev.map((i) => {
+        if (i.id === id) {
+          const months = i.confirmedMonths || [];
+          return {
+            ...i,
+            confirmedMonths: months.filter((m) => m !== ym),
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return i;
+      })
+    );
+
+    if (isAuthenticated) {
+      try {
+        await incomesApi.unconfirmIncome(id, ym);
+      } catch (err) {
+        console.error('API unconfirmIncome failed:', err);
+      }
+    }
+  };
+
+  const toggleIncomeConfirmation = async (id: string, yearMonth?: string) => {
+    const ym = yearMonth || currentMonth;
+    const target = rawIncomes.find((i) => i.id === id);
+    if (!target) return;
+    const isConfirmed = target.confirmedMonths?.includes(ym);
+    if (isConfirmed) {
+      await unconfirmIncome(id, ym);
+    } else {
+      await confirmIncome(id, ym);
     }
   };
 
@@ -542,8 +576,7 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const confirmFixedExpense = async (
     id: string,
-    yearMonth?: string,
-    paymentMethod: PaymentMethod = 'DEBIT'
+    yearMonth?: string
   ) => {
     const ym = yearMonth || currentMonth;
     const target = rawFixedExpenses.find((fe) => fe.id === id);
@@ -561,22 +594,58 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
       })
     );
 
-    addDailyExpense(
-      `[Pago] ${target.description}`,
-      target.amount,
-      paymentMethod,
-      undefined,
-      target.category || 'Gastos Fijos',
-      target.currency || 'ARS',
-      'EXPENSE'
-    );
-
     if (isAuthenticated) {
       try {
         await fixedExpensesApi.confirmFixedExpense(id, ym);
       } catch (err) {
         console.error('API confirmFixedExpense failed:', err);
       }
+    }
+  };
+
+  const unconfirmFixedExpense = async (
+    id: string,
+    yearMonth?: string
+  ) => {
+    const ym = yearMonth || currentMonth;
+    const target = rawFixedExpenses.find((fe) => fe.id === id);
+    if (!target) return;
+
+    setFixedExpenses((prev) =>
+      prev.map((fe) => {
+        if (fe.id === id) {
+          const months = fe.confirmedMonths || [];
+          return {
+            ...fe,
+            confirmedMonths: months.filter((m) => m !== ym),
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return fe;
+      })
+    );
+
+    if (isAuthenticated) {
+      try {
+        await fixedExpensesApi.unconfirmFixedExpense(id, ym);
+      } catch (err) {
+        console.error('API unconfirmFixedExpense failed:', err);
+      }
+    }
+  };
+
+  const toggleFixedExpenseConfirmation = async (
+    id: string,
+    yearMonth?: string
+  ) => {
+    const ym = yearMonth || currentMonth;
+    const target = rawFixedExpenses.find((fe) => fe.id === id);
+    if (!target) return;
+    const isConfirmed = target.confirmedMonths?.includes(ym);
+    if (isConfirmed) {
+      await unconfirmFixedExpense(id, ym);
+    } else {
+      await confirmFixedExpense(id, ym);
     }
   };
 
@@ -792,7 +861,11 @@ export const FinancialProvider: React.FC<{ children: ReactNode }> = ({ children 
         toggleFixedExpense,
         deleteFixedExpense,
         confirmIncome,
+        unconfirmIncome,
+        toggleIncomeConfirmation,
         confirmFixedExpense,
+        unconfirmFixedExpense,
+        toggleFixedExpenseConfirmation,
         dailyExpenses,
         addDailyExpense,
         deleteDailyExpense,

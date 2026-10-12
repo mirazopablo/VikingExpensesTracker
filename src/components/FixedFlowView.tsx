@@ -10,12 +10,12 @@ export const FixedFlowView: React.FC = () => {
     incomes,
     addIncome,
     deleteIncome,
-    confirmIncome,
+    toggleIncomeConfirmation,
     fixedExpenses,
     addFixedExpense,
     toggleFixedExpense,
     deleteFixedExpense,
-    confirmFixedExpense,
+    toggleFixedExpenseConfirmation,
     convert,
     selectedRateType
   } = useFinancialContext();
@@ -184,19 +184,17 @@ export const FixedFlowView: React.FC = () => {
                           {equiv} ({selectedRateType})
                         </span>
                       </div>
-                      {isConfirmed ? (
-                        <span className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-semibold flex items-center gap-1">
-                          <CheckCircle className="w-3.5 h-3.5" /> Cobrado
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => confirmIncome(item.id, currentYearMonth)}
-                          className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1 cursor-pointer"
-                          title="Confirmar cobro efectivo para este mes"
-                        >
-                          <CheckCircle className="w-3.5 h-3.5" /> Cobrado
-                        </button>
-                      )}
+                      <button
+                        onClick={() => toggleIncomeConfirmation(item.id, currentYearMonth)}
+                        className={`px-3 py-1.5 rounded-xl font-bold text-xs font-mono uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5 cursor-pointer ${
+                          isConfirmed
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30'
+                            : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+                        }`}
+                        title={isConfirmed ? 'Click para desmarcar cobro' : 'Confirmar cobro de este mes'}
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" /> {isConfirmed ? 'Cobrado' : 'Cobrar'}
+                      </button>
                       <button
                         onClick={() => deleteIncome(item.id)}
                         className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
@@ -334,19 +332,17 @@ export const FixedFlowView: React.FC = () => {
                           {equiv} ({selectedRateType})
                         </span>
                       </div>
-                      {isConfirmed ? (
-                        <span className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-semibold flex items-center gap-1">
-                          <CheckCircle className="w-3.5 h-3.5" /> Pagado
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => confirmFixedExpense(item.id, currentYearMonth)}
-                          className="px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs font-mono uppercase tracking-wider shadow-md shadow-rose-500/20 transition-all flex items-center gap-1 cursor-pointer"
-                          title="Confirmar pago realizado para este mes"
-                        >
-                          <CheckCircle className="w-3.5 h-3.5" /> Pagado
-                        </button>
-                      )}
+                      <button
+                        onClick={() => toggleFixedExpenseConfirmation(item.id, currentYearMonth)}
+                        className={`px-3 py-1.5 rounded-xl font-bold text-xs font-mono uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5 cursor-pointer ${
+                          isConfirmed
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30'
+                            : 'bg-rose-500 hover:bg-rose-400 text-white shadow-rose-500/20'
+                        }`}
+                        title={isConfirmed ? 'Click para desmarcar pago' : 'Confirmar pago de este mes'}
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" /> {isConfirmed ? 'Pagado' : 'Pagar'}
+                      </button>
                       <button
                         onClick={() => toggleFixedExpense(item.id)}
                         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
