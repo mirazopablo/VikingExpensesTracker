@@ -18,10 +18,17 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Environment variables needed at build time
+# Build arguments and environment variables needed at build time
+ARG BASE_PATH=/viking-app
+ARG API_BASE_URL
+ARG GOOGLE_CLIENT_ID
+
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 ENV DOCKER_BUILD true
+ENV BASE_PATH=${BASE_PATH}
+ENV API_BASE_URL=${API_BASE_URL}
+ENV GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
 
 # Build Next.js project
 RUN pnpm run build
@@ -37,7 +44,7 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copy static assets and standalone output
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 

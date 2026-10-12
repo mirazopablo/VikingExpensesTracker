@@ -3,10 +3,21 @@
 import React, { useState } from 'react';
 import { useFinancialContext } from '../context/FinancialContext';
 import { Currency } from '../types/financial';
-import { ShoppingBag, PlusCircle, Trash2, CreditCard as CardIcon, Layers, Calculator, ArrowRight, DollarSign } from 'lucide-react';
+import { ShoppingBag, PlusCircle, Trash2, CreditCard as CardIcon, Layers, DollarSign } from 'lucide-react';
+import { CreditCardSimulator } from './CreditCardSimulator';
 
 export const InstallmentsView: React.FC = () => {
-  const { installmentPurchases, addInstallmentPurchase, deleteInstallmentPurchase, creditCards, setActiveView, convert, selectedRateType } = useFinancialContext();
+  const {
+    installmentPurchases,
+    addInstallmentPurchase,
+    deleteInstallmentPurchase,
+    creditCards,
+    convert,
+    selectedRateType,
+    activeProfile
+  } = useFinancialContext();
+
+  const isCardSimulatorEnabled = activeProfile?.preferences?.enableCardSimulator ?? true;
 
   const [description, setDescription] = useState('');
   const [totalAmount, setTotalAmount] = useState<number | ''>('');
@@ -34,26 +45,8 @@ export const InstallmentsView: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Banner directing to Simulator */}
-      <div className="bg-gradient-to-r from-emerald-900/40 via-slate-900 to-slate-900 rounded-2xl p-6 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-            <Calculator className="w-6 h-6" />
-          </div>
-          <div>
-            <h4 className="text-base font-bold text-white">¿Quieres simular antes de comprar?</h4>
-            <p className="text-xs text-slate-300 mt-0.5">
-              Usa nuestro motor interactivo de proyección matemática para verificar si la compra en cuotas se ajusta a tu margen financiero antes de confirmar.
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => setActiveView('summary')}
-          className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
-        >
-          Abrir Simulador <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
+      {/* Interactive Credit Card Simulator (if enabled in active profile) */}
+      {isCardSimulatorEnabled && <CreditCardSimulator />}
 
       {/* Manual Installment Plan Form */}
       <div className="bg-slate-900/90 rounded-2xl border border-slate-800/80 p-6 shadow-xl backdrop-blur-md">

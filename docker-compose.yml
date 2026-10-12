@@ -3,6 +3,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        BASE_PATH: /viking-app
+        API_BASE_URL: http://${DOMAIN_NAME:-lenovov15.tail6f4be3.ts.net}/viking-expenses/api/v1
+        GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     container_name: viking_frontend
     restart: unless-stopped
     security_opt:
@@ -11,6 +15,7 @@ services:
       - NODE_ENV=production
       - BASE_PATH=/viking-app
       - API_BASE_URL=http://${DOMAIN_NAME:-lenovov15.tail6f4be3.ts.net}/viking-expenses/api/v1
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
     networks:
       - mired2
     deploy:
