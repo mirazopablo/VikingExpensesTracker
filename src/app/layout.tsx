@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Viking Expenses Tracker | Motor de Gestión Financiera",
+  title: "Gestor de Gastos | Control Financiero Personal",
   description: "Dashboard de gestión financiera personal bimoneda y simulación de cuotas para smartphones y escritorio.",
   manifest: "/manifest.json",
   icons: {
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Viking Expenses"
+    title: "Gestor de Gastos"
   }
 };
 

@@ -111,7 +111,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen }) => {
           </div>
 
           <h2 className="text-2xl font-bold tracking-tight text-white">
-            Viking Expenses Tracker
+            Gestor de Gastos
           </h2>
           <p className="mt-2 text-sm text-slate-400">
             Sistema privado de gestión financiera y control presupuestario multiperfil.

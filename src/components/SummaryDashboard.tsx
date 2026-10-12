@@ -147,16 +147,15 @@ export const SummaryDashboard: React.FC = () => {
           <div>
             <span className="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
-              Saldo Disponible Mensual (ARS) • {activeProfile?.name}
+              Saldo Disponible Mensual (ARS)
             </span>
             <div
-              className={`mt-3 text-4xl sm:text-5xl font-bold font-mono tracking-tight tabular-nums transition-colors ${
-                monthlyBalances.ars.available < 0
+              className={`mt-3 text-4xl sm:text-5xl font-bold font-mono tracking-tight tabular-nums transition-colors ${monthlyBalances.ars.available < 0
                   ? 'text-rose-500'
                   : monthlyBalances.ars.available < safetyMargin
-                  ? 'text-amber-400'
-                  : 'text-white'
-              }`}
+                    ? 'text-amber-400'
+                    : 'text-white'
+                }`}
             >
               ${monthlyBalances.ars.available.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
@@ -170,11 +169,10 @@ export const SummaryDashboard: React.FC = () => {
           <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
             <span>Mes: {selectedYearMonthStr}</span>
             <span
-              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase ${
-                monthlyBalances.ars.available >= safetyMargin
+              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase ${monthlyBalances.ars.available >= safetyMargin
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                   : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-              }`}
+                }`}
             >
               {monthlyBalances.ars.available >= safetyMargin ? 'Margen Viable' : 'Alerta de Liquidez'}
             </span>
@@ -194,9 +192,8 @@ export const SummaryDashboard: React.FC = () => {
                 Saldo Disponible Mensual (USD)
               </span>
               <div
-                className={`mt-3 text-4xl sm:text-5xl font-bold font-mono tracking-tight tabular-nums transition-colors ${
-                  monthlyBalances.usd.available < 0 ? 'text-rose-500' : 'text-teal-300'
-                }`}
+                className={`mt-3 text-4xl sm:text-5xl font-bold font-mono tracking-tight tabular-nums transition-colors ${monthlyBalances.usd.available < 0 ? 'text-rose-500' : 'text-teal-300'
+                  }`}
               >
                 US$ {monthlyBalances.usd.available.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
